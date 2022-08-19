@@ -1,5 +1,6 @@
 package Process
 
+import Globals.GlobalVariables
 import akka.actor.typed.ActorSystem
 import akka.actor.typed.scaladsl.adapter.TypedActorSystemOps
 import akka.http.scaladsl.Http
@@ -19,7 +20,7 @@ object TSMSPPortalHttpServer {
     implicit val classicSystem: akka.actor.ActorSystem = system.toClassic
     import system.executionContext
     val futureBinding =
-      Http().newServerAt("localhost",6070).connectionSource().to(Sink.foreach { connection => {
+      Http().newServerAt(GlobalVariables.listenAddress,GlobalVariables.listenPortal).connectionSource().to(Sink.foreach { connection => {
         val remoteIP = connection.remoteAddress.getAddress.toString.replaceAll("/", "")
         Logger("HttpServer").info("Accepted connection from " + remoteIP)
         connection handleWith concat(routes,
