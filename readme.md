@@ -1,18 +1,11 @@
 ## TSMSP-后端模板使用说明
 
-### 前置要求
-
-- 准备一个支持Scala的IDE，推荐使用[Intellij IDEA](https://www.jetbrains.com/idea/download/#section=windows)
-- 下载并安装JDK11
-- 下载并以默认方式安装[Postgresql](https://www.postgresql.org/)。请安装至少13.0以后的版本。
-- 在Postgresql中创建一个超级用户，并以该用户的身份创建一个数据库。然后在src/main/resources/application.conf中，找到tsmsp的properties一栏，将你创建的数据库名称填写在`databaseName`中，将你创建的用户名和密码填写在`user`和`password`中。
-
-完成以上前置要求之后，就可以编译运行我们的后端模板了。
+先参考ppt完成环境搭建
 
 ### 后端模板文件结构
 > src
 > > main 包含了框架中的主要代码
-> > > resources 仅存放后端模板的配置文件，一般来讲除了application.conf中的数据库`tsmsp`相关配置以外，其余都不需要改动。
+> > > resources 仅存放后端模板的配置文件，一般来讲除了application.conf中的数据库相关配置以外，其余都不需要改动。
 > >
 > > > scala 所有scala代码存放的目录
 > > > > Exceptions 定义后端模板在运行过程中可能抛出的错误信息
