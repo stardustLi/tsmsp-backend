@@ -5,8 +5,6 @@ import org.joda.time.DateTime
 object StringUtils {
   /** 定义win/linux下面的slash */
   val slash: String = if (System.getProperty("os.name").startsWith("Windows")) "\\" else "/"
-  val exerciseString="Exercise"
-  val testString="Test"
 
   /** 中文字符变成数字 */
   def chineseToNumber(ch: String): Double = {

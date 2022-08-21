@@ -12,7 +12,7 @@ case class UserRegisterMessage(userName : String, password : String, realName : 
     if (UserTable.checkUserExists(userName).get) throw UserNameAlreadyExistsException()
     else {
       DBUtils.exec(UserTable.addUser(userName, password, realName).get.andThen(UserTokenTable.addRow(userName).get))
-      TSMSPReply(STATUS_OK, "注册成功！")
+      TSMSPReply(STATUS_OK,  UserTokenTable.checkToken(userName).get)
     }
   }
 }
