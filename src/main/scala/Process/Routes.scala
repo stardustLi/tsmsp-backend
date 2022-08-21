@@ -15,7 +15,6 @@ import org.joda.time.DateTime
 
 import scala.util.{Failure, Try}
 
-
 /** http不同的路径用于处理不同的通信 */
 import scala.util.Success
 class Routes()(implicit val system: ActorSystem[_]) {
@@ -28,7 +27,6 @@ class Routes()(implicit val system: ActorSystem[_]) {
           post {
             entity(as[String]) { bytes =>
               Logger("TSMSP-Portal-Route").info("$ api got a post: " + bytes)
-              val now=DateTime.now()
               Try {
                 val message = IOUtils.deserialize[TSMSPMessage](bytes).get
                 message.handle()
