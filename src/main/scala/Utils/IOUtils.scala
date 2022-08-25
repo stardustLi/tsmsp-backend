@@ -11,26 +11,20 @@ import scala.swing.Dialog
 import scala.util.Try
 
 object IOUtils {
-
-  /** Jackson使用的object mapper */
+  /* Jackson 使用的 object mapper */
   val objectMapper: ObjectMapper = new ObjectMapper().registerModule(DefaultScalaModule)
 
-  /** 序列化 */
-  def serialize(o: Any): Try[String] = Try {
-    o match {
-      case Some(o2) =>
-        objectMapper.writeValueAsString(o2)
+  /* 序列化 */
+  def serialize(entry: Any): Try[String] = Try {
+    entry match {
+      case Some(element) =>
+        objectMapper.writeValueAsString(element)
       case _ =>
-        objectMapper.writeValueAsString(o)
+        objectMapper.writeValueAsString(entry)
     }
   }
 
-  def serializeList[T](o: List[T]): Try[String] = Try {
-    o.map(IOUtils.serialize(_).get).mkString("[", ",", "]")
-  }
-
-
-  /** 逆序列化 */
+  /* 逆序列化 */
   def deserialize[T](bytes: String)(implicit tag: ClassTag[T]): Try[T] = Try {
     objectMapper.readValue(bytes.getBytes(), tag.runtimeClass).asInstanceOf[T]
   }
@@ -39,14 +33,14 @@ object IOUtils {
     inputString.map(IOUtils.deserialize[T](_).get)
   }
 
-  /** 删除文件夹 */
+  /* 删除文件夹 */
   def recursiveDelete(curFile: File): Unit = {
     if (curFile.isDirectory)
       curFile.listFiles().foreach(recursiveDelete)
     curFile.delete()
   }
 
-  /** 强制删除文件 */
+  /* 强制删除文件 */
   def deleteFile(fileName: String): Boolean = {
     val file = new File(fileName)
     if (file.exists())
@@ -68,7 +62,7 @@ object IOUtils {
     false
   }
 
-  /** 看看folder是否存在 */
+  /* 检查 folder 是否存在 */
   def checkFolder(folderName: String): Unit = {
     val path = new File(folderName)
     if (!path.exists()) path.mkdirs()
@@ -80,11 +74,11 @@ object IOUtils {
     },
     entity = IOUtils.serialize(reply).get
   )
+
   def fromString(success: Boolean, reply: String): HttpResponse = HttpResponse(
     status = {
       if (success) StatusCodes.OK else StatusCodes.BadRequest
     },
     entity = reply
   ).addHeader(RawHeader("Access-Control-Allow-Origin", "*"))
-
 }

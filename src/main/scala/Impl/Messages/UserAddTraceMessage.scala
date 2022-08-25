@@ -7,11 +7,11 @@ import org.joda.time.DateTime
 
 import scala.util.Try
 
-case class UserUpdateTraceMessage(userToken: String, time: Long, trace: String) extends TSMSPMessage {
+case class UserAddTraceMessage(userToken: String, trace: String) extends TSMSPMessage {
   override def reaction(now: DateTime): Try[TSMSPReply] = Try {
     val userName = UserTokenTable.checkUserName(userToken, now).get
 
-    DBUtils.exec(UserTraceTable.updateTrace(userName, trace, time).get)
-    TSMSPReply(STATUS_OK, "更新成功！")
+    DBUtils.exec(UserTraceTable.addTrace(userName, trace, now.getMillis()).get)
+    TSMSPReply(STATUS_OK, "上传成功！")
   }
 }

@@ -2,7 +2,7 @@ package Process
 
 import Impl.Messages.TSMSPMessage
 import Utils.IOUtils.{fromObject, fromString}
-import Process.Server.logger
+import Process.Server.{LOGGER => ServerLOGGER}
 import Utils.IOUtils
 import akka.actor.typed.ActorSystem
 import akka.http.scaladsl.model.headers.HttpOriginRange
@@ -15,32 +15,35 @@ import org.joda.time.DateTime
 
 import scala.util.{Failure, Try}
 
-/** http不同的路径用于处理不同的通信 */
+/* http 不同的路径用于处理不同的通信 */
 import scala.util.Success
+
 class Routes()(implicit val system: ActorSystem[_]) {
+  val LOGGER = Logger("TSMSP-Portal-Route")
+
   val settings: CorsSettings.Default = CorsSettings.defaultSettings.copy(
     allowedOrigins = HttpOriginRange.* // * refers to all
   )
   val routes: Route = {
-      concat(
-        (path("api") & cors(settings)) {
-          post {
-            entity(as[String]) { bytes =>
-              Logger("TSMSP-Portal-Route").info("$ api got a post: " + bytes)
-              Try {
-                val message = IOUtils.deserialize[TSMSPMessage](bytes).get
-                message.handle()
-              } match {
-                case Success(value) =>
-                  logger.info("处理成功")
-                  complete(fromObject(success = true, value))
-                case Failure(e: Throwable) =>
-                  logger.error(s"出现未知错误${e.getMessage}")
-                  complete(fromString(success = true, e.getMessage))
-              }
+    concat(
+      (path("api") & cors(settings)) {
+        post {
+          entity(as[String]) { bytes =>
+            LOGGER.info("$ api got a post: " + bytes)
+            Try {
+              val message = IOUtils.deserialize[TSMSPMessage](bytes).get
+              message.handle()
+            } match {
+              case Success(value) =>
+                ServerLOGGER.info("处理成功")
+                complete(fromObject(success = true, value))
+              case Failure(e: Throwable) =>
+                ServerLOGGER.error(s"出现未知错误 ${e.getMessage}")
+                complete(fromString(success = true, e.getMessage))
             }
           }
-        },
+        }
+      },
       )
   }
 }

@@ -20,3 +20,6 @@ tree-object
 remote-version.txt
 .bsp/
 null/*
+.metals/
+.vscode/
+.bloop/

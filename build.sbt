@@ -24,7 +24,7 @@ libraryDependencies ++= Seq(
   "com.typesafe.slick" %% "slick" % "3.3.1",
   "com.typesafe.slick" %% "slick-hikaricp" % "3.3.1",
   "org.postgresql" % "postgresql" % "42.2.5",//org.postgresql.ds.PGSimpleDataSource dependency
-  "joda-time"%"joda-time"%"2.10.5",
+  "joda-time" % "joda-time" % "2.10.5",
   "ch.qos.logback" % "logback-classic" % "1.2.10",
   "com.typesafe.scala-logging" %% "scala-logging" % "3.9.4",
   "org.scala-lang.modules" %% "scala-swing" % "2.0.0-M2",

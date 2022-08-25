@@ -1,3 +1,3 @@
 package Impl
 
-case class TSMSPReply(status : Int, message : String) extends JacksonSerializable
+case class TSMSPReply(status: Int, message: Any) extends JacksonSerializable

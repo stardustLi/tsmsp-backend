@@ -9,16 +9,12 @@ import slick.jdbc.PostgresProfile.api._
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
-
 object DBUtils {
+  lazy val DBConfig: Config = ConfigFactory.parseString("").withFallback(ConfigFactory.load())
+  lazy val db: Database = Database.forConfig("tsmsp", config = DBConfig)
 
-  lazy val DBConfig: Config = ConfigFactory
-    .parseString(s"""""")withFallback(ConfigFactory.load())
-
-  lazy val db=Database.forConfig("tsmsp", config=DBConfig)
-
-  def exec[T] : DBIO[T] => T = action => Await.result(db.run(action), Duration.Inf)
-  def initDatabase():Unit={
+  def exec[T]: DBIO[T] => T = action => Await.result(db.run(action), Duration.Inf)
+  def initDatabase(): Unit = {
     exec(
       DBIO.seq(
         sql"CREATE SCHEMA IF NOT EXISTS #${GlobalVariables.mainSchema.get}".as[Long],
@@ -28,7 +24,7 @@ object DBUtils {
       )
     )
   }
-  def dropDatabases():Unit={
+  def dropDatabases(): Unit = {
     exec(
       DBIO.seq(
         UserTable.userTable.schema.dropIfExists,
