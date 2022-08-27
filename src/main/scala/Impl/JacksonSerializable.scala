@@ -1,3 +1,0 @@
-package Impl
-
-trait JacksonSerializable
