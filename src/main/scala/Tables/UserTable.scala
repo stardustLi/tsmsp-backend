@@ -13,6 +13,7 @@ case class UserRow(
   realName: String,
   idcard: String,
 )
+//
 
 class UserTable(tag: Tag) extends Table[UserRow](tag, GlobalVariables.mainSchema, "user") {
   def userName = column[String]("user_name", O.PrimaryKey)

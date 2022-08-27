@@ -13,6 +13,7 @@ case class UserTraceRowWithPeople(
   PeopleMetWithThisPeople: String,//密接者身份证号
   time: Long,
 )
+//
 
 class UserTraceTableWithPeople(tag: Tag) extends Table[UserTraceRowWithPeople](tag, GlobalVariables.mainSchema, "user_trace_with_people") {
   def ThisPeople = column[String]("id_card")
