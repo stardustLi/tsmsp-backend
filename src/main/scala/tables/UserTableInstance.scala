@@ -13,7 +13,7 @@ class UserTable(tag: Tag) extends Table[User](tag, mainSchema, "user") {
   def userName = column[UserName]("user_name", O.PrimaryKey)
   def password = column[String]("password")
   def realName = column[String]("real_name")
-  def idCard   = column[IDCard]("id_card")
+  def idCard   = column[IDCard]("id_card", O.Unique)
   def *        = (userName, password, realName, idCard).mapTo[User]
 }
 

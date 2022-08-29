@@ -13,7 +13,7 @@ class UserTraceTable(tag: Tag) extends Table[UserTrace](tag, mainSchema, "user_t
   import models.CustomColumnTypes._
   def userName = column[UserName]("user_name")
   def trace    = column[Trace]("trace")
-  def time     = column[Long]("time")
+  def time     = column[Long]("time", O.Unique)
   def *        = (userName, trace, time).mapTo[UserTrace]
 }
 

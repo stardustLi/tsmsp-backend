@@ -20,7 +20,7 @@ object UserPermissionTableInstance {
   val instance = TableQuery[UserPermissionTable]
   await(instance.schema.createIfNotExists)
 
-  def filterByUserName(userName: String) = Try {
+  def filterByUserName(userName: String): Try[Query[UserPermissionTable, UserPermission, Seq]] = Try {
     instance.filter(user => user.userName === userName)
   }
 }
