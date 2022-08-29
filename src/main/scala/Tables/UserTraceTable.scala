@@ -9,15 +9,20 @@ import slick.lifted.{ProvenShape, Tag}
 
 import scala.util.Try
 
+case class Trace(
+  province: String,
+  city: String,
+  county: String
+)
 case class UserTraceRow(
   userName: String,
-  trace: String,
+  trace: Trace,
   time: Long,
 )
 
 class UserTraceTable(tag: Tag) extends Table[UserTraceRow](tag, GlobalVariables.mainSchema, "user_trace") {
   def userName = column[String]("user_name")
-  def trace = column[String]("trace")
+  def trace = column[Trace]("trace")
   def time = column[Long]("time")
   def * = (userName, trace, time).mapTo[UserTraceRow]
 }
@@ -25,7 +30,7 @@ class UserTraceTable(tag: Tag) extends Table[UserTraceRow](tag, GlobalVariables.
 object UserTraceTable {
   val userTraceTable = TableQuery[UserTraceTable]
 
-  def addTrace(userName: String, trace: String, time: Long): Try[DBIO[Int]] = Try {
+  def addTrace(userName: String, trace: Trace, time: Long): Try[DBIO[Int]] = Try {
     userTraceTable += UserTraceRow(userName, trace, time)
   }
 
@@ -48,7 +53,7 @@ object UserTraceTable {
       .delete
   }
 
-  def updateTrace(userName: String, trace: String, time: Long): Try[DBIO[Int]] = Try {
+  def updateTrace(userName: String, trace: Trace, time: Long): Try[DBIO[Int]] = Try {
     userTraceTable
       .filter(
         trace => trace.userName === userName && trace.time === time
