@@ -26,11 +26,11 @@ object TraceService {
   }
 
   def updateTrace(userToken: String, time: Long, trace: Trace, now: DateTime) = Try {
-    
+
   }
 
   def getTraces(userToken: String, startTime: Long, endTime: Long, now: DateTime) = Try {
-    
+
   }
   /*
 
