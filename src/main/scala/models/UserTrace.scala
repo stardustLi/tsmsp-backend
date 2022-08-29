@@ -1,9 +1,9 @@
 package models
 
-import models.fields.UserName
+import models.fields.IDCard
 
 case class UserTrace (
-  userName: UserName,
+  idCard: IDCard,
   trace: Trace,
   time: Long,
 )

@@ -6,22 +6,22 @@ import slick.lifted.Tag
 
 import globals.GlobalVariables.mainSchema
 import models.{Trace, UserTrace}
-import models.fields.UserName
+import models.fields.IDCard
 import utils.db.await
 
 class UserTraceTable(tag: Tag) extends Table[UserTrace](tag, mainSchema, "user_trace") {
   import models.CustomColumnTypes._
-  def userName = column[UserName]("user_name")
-  def trace    = column[Trace]("trace")
-  def time     = column[Long]("time", O.Unique)
-  def *        = (userName, trace, time).mapTo[UserTrace]
+  def idCard = column[IDCard]("id_card")
+  def trace  = column[Trace]("trace")
+  def time   = column[Long]("time", O.Unique)
+  def *      = (idCard, trace, time).mapTo[UserTrace]
 }
 
 object UserTraceTableInstance {
   val instance = TableQuery[UserTraceTable]
   await(instance.schema.createIfNotExists)
 
-  def filterByUserName(userName: UserName): Try[Query[UserTraceTable, UserTrace, Seq]] = Try {
-    instance.filter(trace => trace.userName === userName)
+  def filterByIDCard(idCard: IDCard): Try[Query[UserTraceTable, UserTrace, Seq]] = Try {
+    instance.filter(trace => trace.idCard === idCard)
   }
 }

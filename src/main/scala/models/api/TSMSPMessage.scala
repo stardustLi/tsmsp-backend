@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.{JsonSubTypes, JsonTypeInfo}
 import org.joda.time.DateTime
 
 import scala.util.{Failure, Success, Try}
+import models.api.trace._
 import models.types.JacksonSerializable
 import models.{HandleStatus, TSMSPReply}
 

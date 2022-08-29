@@ -1,6 +1,7 @@
 package service
 
-import models.Trace
+import models.fields.IDCard
+import models.{Trace, UserTrace}
 import org.joda.time.DateTime
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -10,51 +11,51 @@ import tables.UserTraceTableInstance
 import utils.db.await
 
 object TraceService {
-  def addTrace(userToken: String, trace: Trace, now: DateTime) = Try {
-
+  def addTrace(userToken: String, idCard: IDCard, trace: Trace, now: DateTime): Try[Int] = Try {
+    await(
+      UserService.checkUserHasAccessByTokenAndIDCard(userToken, idCard, now).get.flatMap(hasAccess => {
+        if (!hasAccess) throw exceptions.noAccessOfIdCard(idCard)
+        UserTraceTableInstance.instance += UserTrace(idCard, trace, now.getMillis)
+      }).transactionally
+    )
   }
 
-  def removeTrace(userToken: String, time: Long, now: DateTime): Try[Int] = Try {
+  def removeTrace(userToken: String, idCard: IDCard, time: Long, now: DateTime): Try[Int] = Try {
     await(
-      UserService.findUserByToken(userToken, now).get.flatMap(userName => {
+      UserService.checkUserHasAccessByTokenAndIDCard(userToken, idCard, now).get.flatMap(hasAccess => {
+        if (!hasAccess) throw exceptions.noAccessOfIdCard(idCard)
         UserTraceTableInstance
-          .filterByUserName(userName).get
+          .filterByIDCard(idCard).get
           .filter(trace => trace.time === time)
           .delete
       }).transactionally
     )
   }
 
-  def updateTrace(userToken: String, time: Long, trace: Trace, now: DateTime) = Try {
-    
-  }
-
-  def getTraces(userToken: String, startTime: Long, endTime: Long, now: DateTime) = Try {
-    
-  }
-  /*
-
-  def checkTrace(userName: String, startTime: Long, endTime: Long): Try[List[UserTraceRow]] = Try {
+  def updateTrace(userToken: String, idCard: IDCard, time: Long, trace: Trace, now: DateTime): Try[Int] = Try {
+    import models.CustomColumnTypes._
     await(
-      userTraceTable
-        .filter(
-          trace => trace.userName === userName && trace.time.between(startTime, endTime)
-        )
-        .sortBy(trace => trace.time)
-        .result
+      UserService.checkUserHasAccessByTokenAndIDCard(userToken, idCard, now).get.flatMap(hasAccess => {
+        if (!hasAccess) throw exceptions.noAccessOfIdCard(idCard)
+        UserTraceTableInstance
+          .filterByIDCard(idCard).get
+          .filter(trace => trace.time === time)
+          .map(trace => trace.trace)
+          .update(trace)
+      }).transactionally
+    )
+  }
+
+  def getTraces(userToken: String, idCard: IDCard, startTime: Long, endTime: Long, now: DateTime): Try[List[UserTrace]] = Try {
+    await(
+      UserService.checkUserHasAccessByTokenAndIDCard(userToken, idCard, now).get.flatMap(hasAccess => {
+        if (!hasAccess) throw exceptions.noAccessOfIdCard(idCard)
+        UserTraceTableInstance
+          .filterByIDCard(idCard).get
+          .filter(trace => trace.time.between(startTime, endTime))
+          .sortBy(trace => trace.time)
+          .result
+      }).transactionally
     ).toList
   }
-
-  def removeTrace(userName: String, time: Long): Try[DBIO[Int]] = Try {
-  }
-
-  def updateTrace(userName: String, trace: String, time: Long): Try[DBIO[Int]] = Try {
-    userTraceTable
-      .filter(
-        trace => trace.userName === userName && trace.time === time
-      )
-      .map(trace => trace.trace)
-      .update(trace)
-  }
-   */
 }

@@ -13,7 +13,7 @@ import utils.db.await
 import utils.string.randomToken
 
 object UserService {
-  val LOGGER = Logger("MainServer")
+  val LOGGER = Logger("UserService")
 
   def login(userName: UserName, password: String, now: DateTime): Try[String] = Try {
     val userQuery: Query[UserTable, User, Seq] = UserTableInstance.filterByUserPass(userName, password).get
@@ -37,7 +37,7 @@ object UserService {
           (
             (UserTableInstance.instance += User(userName, password, realName, idCard)) >>
             (UserTokenTableInstance.instance += UserToken(userName, token, now.getMillis))
-          ).zip(DBIO.successful(token))
+          ) zip (DBIO.successful(token))
         }
       ).map(
         result => result._2
@@ -73,29 +73,42 @@ object UserService {
       )
   }
 
+  def checkUserHasAccess(user: UserName, other: UserName): Try[DBIO[Boolean]] = Try {
+    // TODO: to finish
+    DBIO.successful(user == other)
+  }
+
+  def checkUserHasAccessByTokenAndIDCard(token: String, idCard: IDCard, now: DateTime): Try[DBIO[Boolean]] = Try {
+    (findUserByToken(token, now).get zip findUserByIDCard(idCard, now).get)
+      .flatMap(result => checkUserHasAccess(result._1, result._2).get)
+  }
+
   def futureCheckToken(userName: UserName, now: DateTime): Try[DBIO[String]] = Try {
     val tokenQuery: Query[UserTokenTable, UserToken, Seq] = UserTokenTableInstance.filterByUserName(userName).get
-    tokenQuery.result.map(
+    tokenQuery.result.flatMap(
       user => {
         if (user.isEmpty) throw exceptions.UserNotExists()
         val entry: UserToken = user.head
+
+        LOGGER.info(entry.userName + ", " + entry.token + ", " + entry.refreshTime)
+
         if (entry.refreshTime >= now.minusHours(2).getMillis) {
           UserTokenTableInstance.filterByUserName(userName).get.map(
             user => user.refreshTime
           ).update(
             now.getMillis
+          ).andThen(
+            DBIO.successful(entry.token)
           )
-
-          entry.token
         } else {
           val newToken = randomToken(30)
           UserTokenTableInstance.filterByUserName(userName).get.map(
             user => (user.token, user.refreshTime)
           ).update(
             (newToken, now.getMillis)
+          ).andThen(
+            DBIO.successful(newToken)
           )
-
-          newToken
         }
       }
     )
