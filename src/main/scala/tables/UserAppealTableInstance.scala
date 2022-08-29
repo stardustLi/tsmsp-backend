@@ -8,7 +8,7 @@ import models.{Appeal, User}
 import models.fields.{IDCard, UserName}
 import utils.db.await
 
-class UserAppealTable(tag: Tag) extends Table[User](tag, mainSchema, "user") {
+class UserAppealTable(tag: Tag) extends Table[Appeal](tag, mainSchema, "user") {
   def realName = column[String]("real_name")
   def idCard   = column[IDCard]("id_card", O.Unique)
   def reason   = column[String]("reason")

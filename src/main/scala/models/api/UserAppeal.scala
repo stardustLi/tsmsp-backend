@@ -1,9 +1,10 @@
 package models.api
 
 import org.joda.time.DateTime
-import scala.util.Try
 
+import scala.util.Try
 import models.{HandleStatus, TSMSPReply}
+import service.CodeService.addAppeal
 import service.TraceService.getTraces
 
 case class UserAppealMessage(realName: String, idCard: String, reason: String) extends TSMSPMessage {

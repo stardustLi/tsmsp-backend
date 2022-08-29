@@ -1,30 +1,26 @@
 package service
 
-import models.Trace
+import models.{Appeal, Trace}
 import org.joda.time.DateTime
 import slick.jdbc.PostgresProfile.api._
-import tables.{UserTable, UserTraceTableInstance}
+import tables.{UserAppealTable, UserAppealTableInstance, UserTable, UserTraceTableInstance}
 import utils.db.await
+import utils.string.randomToken
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.Try
 
 object CodeService {
 
-  def addAppeal(idCard: String, realName: String, reason: String): Try[String] = Try {
-    val userQuery: Query[UserTable, User, Seq] = UserTableInstance.filterByUserName(userName).get
+  def addAppeal(idCard: String, realName: String, reason: String,time: DateTime): Try[Int] = Try {
+    val userQuery: Query[UserAppealTable, Appeal, Seq] = UserAppealTableInstance.filterByIdCard(idCard).get
     await(
       userQuery.result.flatMap(
         user => {
           if (user.nonEmpty) throw exceptions.UserNameAlreadyExists()
-          val token = randomToken(30)
-          (
-            (UserTableInstance.instance += User(userName, password, realName, idCard)) >>
-              (UserTokenTableInstance.instance += UserToken(userName, token, now.getMillis))
-            ).zip(DBIO.successful(token))
+          //val token = randomToken(30)
+            (UserAppealTableInstance.instance += Appeal(realName, idCard, reason))
         }
-      ).map(
-        result => result._2
       ).transactionally
     )
   }
@@ -39,11 +35,11 @@ object CodeService {
       }).transactionally
     )
   }
-
-  def updateTrace(userToken: String, time: Long, trace: Trace, now: DateTime) = Try {
-    
-  }
-
-  def getTraces(userToken: String, startTime: Long, endTime: Long, now: DateTime) = Try {
-    
-  }
+}
+//  def updateTrace(userToken: String, time: Long, trace: Trace, now: DateTime) = Try {
+//
+//  }
+//
+//  def getTraces(userToken: String, startTime: Long, endTime: Long, now: DateTime) = Try {
+//
+//  }
