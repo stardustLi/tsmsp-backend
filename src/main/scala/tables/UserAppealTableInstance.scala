@@ -8,18 +8,17 @@ import models.{Appeal, User}
 import models.fields.{IDCard, UserName}
 import utils.db.await
 
-class UserAppealTable(tag: Tag) extends Table[Appeal](tag, mainSchema, "user") {
-  def realName = column[String]("real_name")
-  def idCard   = column[IDCard]("id_card", O.Unique)
-  def reason   = column[String]("reason")
-  def *        = (realName, idCard, reason).mapTo[Appeal]
+class UserAppealTable(tag: Tag) extends Table[Appeal](tag, mainSchema, "user_appeal") {
+  def idCard = column[IDCard]("id_card", O.PrimaryKey)
+  def reason = column[String]("reason")
+  def *      = (idCard, reason).mapTo[Appeal]
 }
 
 object UserAppealTableInstance {
   val instance = TableQuery[UserAppealTable]
   await(instance.schema.createIfNotExists)
 
-  def filterByIdCard(idCard: String): Try[Query[UserAppealTable, Appeal, Seq]] = Try {
+  def filterByIdCard(idCard: IDCard): Try[Query[UserAppealTable, Appeal, Seq]] = Try {
     instance.filter(Appeal => Appeal.idCard === idCard)
   }
 }

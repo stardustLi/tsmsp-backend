@@ -43,7 +43,7 @@ async function startModule(type, test) {
 
 async function test() {
 	try {
-		const idCard = '2021010818';
+		const idCard = '2021010818', hzkIdCard = '2021010698';
 		let token = '';
 
 		// 注册以及用户已存在
@@ -61,6 +61,8 @@ async function test() {
 			}
 			assert.equal(result.status, -1);
 			assert.equal(result.message, '错误！用户名已经存在了');
+
+			await POST({ type, userName: 'wide', password: 'hzk', realName: '卷宽', idCard: hzkIdCard });
 		});
 
 		// 登录
@@ -100,16 +102,13 @@ async function test() {
 			});
 		}
 
-		console.log('\x1b[35m不存在政策测试 ...\x1b[0m\n');
+		console.log('\x1b[35m不存在以及不合法政策测试 ...\x1b[0m\n');
 		await startModule('PolicyQueryMessage', async type => {
 			const data = { type, place: { province: '不存在的', city: '坏了', county: '没了' } };
 			const result = await POST(data);
 			assert.equal(result.status, -1);
-		});
 
-		console.log('\x1b[35m不合法政策测试 ...\x1b[0m\n');
-		await startModule('PolicyQueryMessage', async type => {
-			const data = { type, place: { '猫猫': '宽宽' } };
+			data.place = { '猫猫': '宽宽' };
 			try {
 				await POST(data);
 				throw new Error();
@@ -125,19 +124,31 @@ async function test() {
 			assert.equal(result1.message, '错误！用户不存在或登录信息已过期！');
 
 			data.userToken = token;
+			data.idCard = 'hahaha';
 			const result2 = await POST(data);
-			assert.equal(result2.status, 0);
-			assert.equal(result2.message, 1);
+			assert.equal(result2.status, -1);
+			assert.equal(result2.message, '错误！不存在身份证号为 IDCard(hahaha) 的用户！');
 
-			data.trace = { province: '省 2', city: '市 2', county: '区 2' };
+			data.userToken = token;
+			data.idCard = hzkIdCard;
 			const result3 = await POST(data);
-			assert.equal(result3.status, 0);
-			assert.equal(result3.message, 1);
+			assert.equal(result3.status, -1);
+			assert.equal(result3.message, `错误！无权限访问身份证号为 IDCard(${hzkIdCard}) 的用户！`);
 
-			data.trace = { province: '省 3', city: '市 3', county: '区 3' };
+			data.idCard = idCard;
 			const result4 = await POST(data);
 			assert.equal(result4.status, 0);
 			assert.equal(result4.message, 1);
+
+			data.trace = { province: '省 2', city: '市 2', county: '区 2' };
+			const result5 = await POST(data);
+			assert.equal(result5.status, 0);
+			assert.equal(result5.message, 1);
+
+			data.trace = { province: '省 3', city: '市 3', county: '区 3' };
+			const result6 = await POST(data);
+			assert.equal(result6.status, 0);
+			assert.equal(result6.message, 1);
 		});
 
 		let traces = [];
@@ -196,6 +207,22 @@ async function test() {
 					assert.equal(result.message, 1);
 				})
 			);
+		});
+
+		await startModule('UserAppealMessage', async type => {
+			const data = { type, userToken: token, idCard, reason: '我要抱猫猫！' };
+			let result = await POST(data);
+			if (result.status === 0) {
+				assert.equal(result.message, 1);
+				result = await POST(data);
+			}
+			assert.equal(result.status, -1);
+			assert(result.message.includes('duplicate'));
+
+			data.reason = '我还要抱宽宽！';
+			result = await POST(data);
+			assert.equal(result.status, -1);
+			assert(result.message.includes('duplicate'));
 		});
 
 	} catch (e) {

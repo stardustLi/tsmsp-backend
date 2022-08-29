@@ -19,6 +19,7 @@ import models.{HandleStatus, TSMSPReply}
     new JsonSubTypes.Type(value = classOf[UserUpdateTraceMessage], name = "UserUpdateTraceMessage"),
     new JsonSubTypes.Type(value = classOf[PolicyQueryMessage], name = "PolicyQueryMessage"),
     new JsonSubTypes.Type(value = classOf[PolicyUpdateMessage], name = "PolicyUpdateMessage"),
+    new JsonSubTypes.Type(value = classOf[UserAppealMessage], name = "UserAppealMessage"),
   ))
 abstract class TSMSPMessage extends JacksonSerializable {
   def handle(): TSMSPReply = reaction(DateTime.now()) match {

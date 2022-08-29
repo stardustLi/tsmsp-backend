@@ -1,9 +1,8 @@
 package models
 
-import models.fields.{IDCard}
+import models.fields.IDCard
 
 case class Appeal(
-  realName: String,
-  idCard: String,
+  idCard: IDCard,
   reason: String
 )
