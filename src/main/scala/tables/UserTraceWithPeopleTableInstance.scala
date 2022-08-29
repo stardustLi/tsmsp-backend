@@ -1,6 +1,5 @@
-package Tables
+package tables
 
-import scala.util.Try
 import slick.jdbc.PostgresProfile.api._
 import slick.lifted.Tag
 
