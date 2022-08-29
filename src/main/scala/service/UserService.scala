@@ -24,16 +24,18 @@ object UserService {
     )
   }
 
-  def register(userName: UserName, password: String, realName: String, idCard: IDCard, now: DateTime): Try[Int] = Try {
+  def register(userName: UserName, password: String, realName: String, idCard: IDCard, now: DateTime): Try[String] = Try {
     val userQuery: Query[UserTable, User, Seq] = UserTableInstance.filterByUserName(userName).get
     await(
-      userQuery.result.flatMap(
+      userQuery.result.map(
         user => {
           if (!user.isEmpty) throw exceptions.UserNameAlreadyExists()
+          val token = randomToken(30)
           (
             (UserTableInstance.instance += User(userName, password, realName, idCard)) >>
-            (UserTokenTableInstance.instance += UserToken(userName, "", 0))
+            (UserTokenTableInstance.instance += UserToken(userName, token, now.getMillis()))
           )
+          token
         }
       ).transactionally
     )

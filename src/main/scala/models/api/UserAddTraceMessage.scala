@@ -8,7 +8,7 @@ import service.TraceService.addTrace
 
 case class UserAddTraceMessage(userToken: String, trace: Trace) extends TSMSPMessage {
   override def reaction(now: DateTime): Try[TSMSPReply] = Try {
-    TSMSPReply(HandleStatus.OK, addTrace(userToken, trace, now))
+    TSMSPReply(HandleStatus.OK, addTrace(userToken, trace, now).get)
     // val userName = UserTokenTable.checkUserName(userToken, now).get
 
     // DBUtils.exec(UserTraceTable.addTrace(userName, trace, now.getMillis()).get)

@@ -21,6 +21,10 @@ object TSMSPPortalHttpServer {
   def startHttpServer(routes: Route, system: ActorSystem[_]): Unit = {
     implicit val classicSystem: akka.actor.ActorSystem = system.toClassic
 
+    val settings: CorsSettings.Default = CorsSettings.defaultSettings.copy(
+      allowedOrigins = HttpOriginRange.* // * refers to all
+    )
+
     val futureBinding =
       Http().newServerAt(
         GlobalVariables.listenAddress,
@@ -28,13 +32,7 @@ object TSMSPPortalHttpServer {
       ).connectionSource().to(Sink.foreach {
         connection => {
           val remoteIP = connection.remoteAddress.getAddress.toString.replaceAll("/", "")
-          val health = (
-            path("health") & cors(
-              CorsSettings.defaultSettings.copy(
-                allowedOrigins = HttpOriginRange.* // * refers to all
-              )
-            )
-          )
+          val health = path("health") & cors(settings)
           LOGGER.info("Accepted connection from " + remoteIP)
           connection.handleWith(
             concat(

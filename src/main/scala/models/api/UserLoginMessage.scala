@@ -9,6 +9,6 @@ import service.UserService.login
 
 case class UserLoginMessage(userName: UserName, password: String) extends TSMSPMessage {
   override def reaction(now: DateTime): Try[TSMSPReply] = Try {
-    TSMSPReply(HandleStatus.OK, login(userName, password, now))
+    TSMSPReply(HandleStatus.OK, login(userName, password, now).get)
   }
 }

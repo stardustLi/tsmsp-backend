@@ -5,8 +5,8 @@ ThisBuild / scalaVersion := "2.12.8"
 lazy val server = (project in file("."))
   .settings(
     name := "TSMSP-Backend",
-    Compile/mainClass := Some("Process.Server"),
-    assembly/mainClass := Some("Process.Server"),
+    Compile/mainClass := Some("process.Server"),
+    assembly/mainClass := Some("process.Server"),
     assembly/assemblyMergeStrategy := {
       case PathList("META-INF", xs @ _*) => MergeStrategy.discard
       case "application.conf" => MergeStrategy.concat

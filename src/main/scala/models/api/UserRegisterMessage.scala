@@ -9,6 +9,6 @@ import service.UserService.register
 
 case class UserRegisterMessage(userName: UserName, password: String, realName: String, idCard: IDCard) extends TSMSPMessage {
   override def reaction(now: DateTime): Try[TSMSPReply] = Try {
-    TSMSPReply(HandleStatus.OK, register(userName, password, realName, idCard, now))
+    TSMSPReply(HandleStatus.OK, register(userName, password, realName, idCard, now).get)
   }
 }

@@ -8,7 +8,7 @@ import service.TraceService.getTraces
 
 case class UserGetTraceMessage(userToken: String, startTime: Long, endTime: Long) extends TSMSPMessage {
   override def reaction(now: DateTime): Try[TSMSPReply] = Try {
-    TSMSPReply(HandleStatus.OK, getTraces(userToken, startTime, endTime, now))
+    TSMSPReply(HandleStatus.OK, getTraces(userToken, startTime, endTime, now).get)
     // case class ResultEntry(trace: String, time: Long)
 
     // val userName = UserTokenTable.checkUserName(userToken, now).get

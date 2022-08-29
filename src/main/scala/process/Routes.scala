@@ -23,11 +23,12 @@ class Routes()(implicit val system: ActorSystem[_]) {
   val settings: CorsSettings.Default = CorsSettings.defaultSettings.copy(
     allowedOrigins = HttpOriginRange.* // * refers to all
   )
+
   val routes: Route = {
     concat(
       (path("api") & cors(settings)) {
-        post {
-          entity(as[String]) { bytes =>
+        post(
+          entity(as[String])(bytes => {
             LOGGER.info("$ api got a post: " + bytes)
             Try {
               val message = deserialize[TSMSPMessage](bytes).get
@@ -40,8 +41,8 @@ class Routes()(implicit val system: ActorSystem[_]) {
                 ServerLOGGER.error(s"出现未知错误 ${e.getMessage}")
                 complete(fromString(success = true, e.getMessage))
             }
-          }
-        }
+          })
+        )
       },
     )
   }
