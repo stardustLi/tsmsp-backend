@@ -4,7 +4,7 @@ import models.UserNucleicAcidTest
 import models.fields.IDCard
 import org.joda.time.DateTime
 import slick.jdbc.PostgresProfile.api._
-import tables.UserNucleicAcidTestTableInstance
+import tables.{UserNucleicAcidTestTableInstance, NucleicAcidTestPointTableInstance}
 import utils.db.await
 
 import scala.concurrent.ExecutionContext.Implicits.global

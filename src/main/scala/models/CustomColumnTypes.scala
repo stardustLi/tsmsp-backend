@@ -20,4 +20,11 @@ object CustomColumnTypes {
       enum => RiskLevel.getType(enum)
     )
   }
+
+  implicit val detailedTraceConverter: JdbcType[DetailedTrace] with BaseTypedType[DetailedTrace] = {
+    MappedColumnType.base[DetailedTrace, String](
+      detailed_Trace => IOUtils.serialize(detailed_Trace).get,
+      json => IOUtils.deserialize[DetailedTrace](json).get
+    )
+  }
 }
