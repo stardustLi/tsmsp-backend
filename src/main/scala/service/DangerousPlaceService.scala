@@ -1,20 +1,20 @@
 package service
 
-import models.CustomColumnTypes._
-import models.enums.RiskLevel
-import models.{DangerousPlace, Policy, Trace}
 import org.joda.time.DateTime
 import slick.jdbc.PostgresProfile.api._
-import tables.DangerousPlaceTableInstance
-import utils.db.await
-
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.Try
+
+import models.CustomColumnTypes._
+import models.enums.RiskLevel
+import models.{DangerousPlace, Trace}
+import tables.DangerousPlaceTableInstance
+import utils.db.await
 
 object DangerousPlaceService {
   def dangerousQuery(place: Trace): Try[RiskLevel] = Try {
     await(
-      DangerousPlaceTableInstance.filterByPlace(place).get
+      DangerousPlaceTableInstance.filterByPlace(place)
         .map(place => place.level)
         .result
         .head
@@ -25,7 +25,7 @@ object DangerousPlaceService {
   def dangerousUpdate(userToken: String, place: Trace, level: RiskLevel, now: DateTime): Try[Int] = Try {
     await(
       (
-        UserService.findUserByToken(userToken, now).get.flatMap(userName => UserService.getUserPermission(userName).get).map(
+        UserService.checkPermission(userToken, now).map(
           {
             case None => throw exceptions.NoPermission()
             case Some(permission) =>

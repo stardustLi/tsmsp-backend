@@ -29,7 +29,7 @@ function request(config) {
 
 async function POST(data) {
 	const content = (await request({ ...APIConfig, data: JSON.stringify(data) }))[1];
-	// console.log(content.toString());
+	if (process.argv.includes('--trace')) console.log(`\x1b[37m${content.toString()}\x1b[0m`);
 	return JSON.parse(content);
 }
 
@@ -85,48 +85,6 @@ async function test() {
 				assert.equal(result.status, 0);
 				rootToken = result.message;
 				assert.equal(typeof rootToken, 'string');
-			}, false);
-		}
-
-		{ // 政策测试
-			// 政策修改和查询
-			const policies = ['卷宽卷宽喵希喵希！', '猫猫和真猫贴贴！'];
-
-			for (let t = 0; t < 2; ++t) {
-				console.log(`\x1b[35m政策修改第 \x1b[32m${t + 1}/2\x1b[35m 轮 ...\x1b[0m\n`);
-				await startModule('PolicyUpdateMessage', async type => {
-					const data = { type, userToken, place, content: policies[t] };
-					const result1 = await POST(data);
-					assert.equal(result1.status, -1);
-					assert.equal(result1.message, '错误！没有权限进行此操作');
-
-					data.userToken = rootToken;
-					const result2 = await POST(data);
-					assert.equal(result2.status, 0);
-					assert.equal(result2.message, 1);
-				});
-
-				await startModule('PolicyQueryMessage', async type => {
-					const data = { type, place };
-					const result = await POST(data);
-					assert.equal(result.status, 0);
-					assert.equal(result.message, policies[t]);
-				});
-			}
-
-			console.log('\x1b[35m不存在以及不合法政策测试 ...\x1b[0m');
-			await startModule('PolicyQueryMessage', async type => {
-				const data = { type, place: { province: '不存在的', city: '坏了', county: '没了' } };
-				const result = await POST(data);
-				assert.equal(result.status, -1);
-
-				data.place = { '猫猫': '宽宽' };
-				try {
-					await POST(data);
-					throw new Error();
-				} catch (e) {
-					assert.equal(e.message, 'Unexpected token U in JSON at position 0');
-				}
 			}, false);
 		}
 
@@ -227,30 +185,55 @@ async function test() {
 			}, false);
 		}
 
-		// 健康码状态申诉
-		await startModule('UserAppealMessage', async type => {
-			const data = { type, userToken, idCard, reason: '我要抱猫猫！' };
-			let result = await POST(data);
-			if (result.status === 0) {
-				assert.equal(result.message, 1);
-				result = await POST(data);
-			}
-			assert.equal(result.status, -1);
-			// assert(result.message.includes('duplicate'));
-
-			data.reason = '我还要抱宽宽！';
-			result = await POST(data);
-			assert.equal(result.status, -1);
-			// assert(result.message.includes('duplicate'));
-		});
-
 		// 上报密接
 		await startModule('UserAddTraceWithPeopleMessage', async type => {
-			const data = { type, userToken, idCard, personIdCard: +hzkIdCard + 1 };
+			const data = { type, userToken, idCard, personIdCard: 2021011832 };
 			const result = await POST(data);
 			assert.equal(result.status, 0);
 			assert.equal(result.message, 1);
 		});
+
+		{ // 政策测试
+			// 政策修改和查询
+			const policies = ['卷宽卷宽喵希喵希！', '猫猫和真猫贴贴！'];
+
+			for (let t = 0; t < 2; ++t) {
+				console.log(`\x1b[35m政策修改第 \x1b[32m${t + 1}/2\x1b[35m 轮 ...\x1b[0m\n`);
+				await startModule('PolicyUpdateMessage', async type => {
+					const data = { type, userToken, place, content: policies[t] };
+					const result1 = await POST(data);
+					assert.equal(result1.status, -1);
+					assert.equal(result1.message, '错误！没有权限进行此操作');
+
+					data.userToken = rootToken;
+					const result2 = await POST(data);
+					assert.equal(result2.status, 0);
+					assert.equal(result2.message, 1);
+				});
+
+				await startModule('PolicyQueryMessage', async type => {
+					const data = { type, place };
+					const result = await POST(data);
+					assert.equal(result.status, 0);
+					assert.equal(result.message, policies[t]);
+				});
+			}
+
+			console.log('\x1b[35m不存在以及不合法政策测试 ...\x1b[0m');
+			await startModule('PolicyQueryMessage', async type => {
+				const data = { type, place: { province: '不存在的', city: '坏了', county: '没了' } };
+				const result = await POST(data);
+				assert.equal(result.status, -1);
+
+				data.place = { '猫猫': '宽宽' };
+				try {
+					await POST(data);
+					throw new Error();
+				} catch (e) {
+					assert.equal(e.message, 'Unexpected token U in JSON at position 0');
+				}
+			}, false);
+		}
 
 		{ // 风险区测试
 			// 风险区修改和查询
@@ -350,9 +333,82 @@ async function test() {
 				assert.equal(result4.message, 1);
 			});
 		}
+
+		{ // 申诉测试
+			let time = 0;
+			// 添加状态申诉
+			await startModule('UserAppealMessage', async type => {
+				const data = { type, userToken, idCard, reason: '我要抱猫猫！' };
+				let result = await POST(data);
+				if (result.status === 0) {
+					assert.equal(result.message, 1);
+					result = await POST(data);
+				}
+				assert.equal(result.status, -1);
+				// assert(result.message.includes('duplicate'));
+
+				data.reason = '我还要抱宽宽！';
+				result = await POST(data);
+				assert.equal(result.status, -1);
+				// assert(result.message.includes('duplicate'));
+			});
+
+			// 查询申诉
+			await startModule('QueryAppealMessage', async type => {
+				const data = { type, userToken, idCard };
+				const result1 = await POST(data);
+				assert.equal(result1.status, -1);
+				assert.equal(result1.message, '错误！没有权限进行此操作');
+
+				const result2 = await POST(
+					{ type: 'SetPermissionMessage', userToken: rootToken, permission: { userName: 'cat', viewAppeals: true } }
+				);
+				assert.equal(result2.status, 0);
+				assert.equal(result2.message, 1);
+
+				const result3 = await POST(data);
+				assert.equal(result3.status, 0);
+				assert.equal(result3.message.idCard, idCard);
+				assert.equal(result3.message.reason, '我要抱猫猫！');
+				({ time } = result3.message);
+
+				data.idCard = +hzkIdCard + 1;
+				const result4 = await POST(data);
+				assert.equal(result4.status, 0);
+				assert.equal(result4.message, null);
+
+				const result5 = await POST(
+					{ type: 'SetPermissionMessage', userToken: rootToken, permission: { userName: 'cat' } }
+				);
+				assert.equal(result5.status, 0);
+				assert.equal(result5.message, 1);
+
+				data.idCard = idCard;
+				const result6 = await POST(data);
+				assert.equal(result6.status, -1);
+				assert.equal(result6.message, '错误！没有权限进行此操作');
+			});
+
+			// 解决申诉
+			await startModule('ResolveAppealMessage', async type => {
+				const data = { type, userToken: rootToken, idCard };
+				const result1 = await POST(data);
+				assert.equal(result1.status, 0);
+				assert.equal(result1.message, 1);
+
+				const result2 = await POST(data);
+				assert.equal(result2.status, 0);
+				assert.equal(result2.message, 0);
+
+				const result3 = await POST({ type: 'QueryAppealMessage', userToken: rootToken, idCard });
+				assert.equal(result3.status, 0);
+				assert.equal(result3.message, null);
+			});
+		}
+
 	} catch (e) {
-	console.log('测试失败，错误:', e);
-}
+		console.log('测试失败，错误:', e);
+	}
 }
 
 test();

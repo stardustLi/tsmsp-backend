@@ -21,11 +21,9 @@ object UserTableInstance {
   val instance = TableQuery[UserTable]
   await(instance.schema.createIfNotExists)
 
-  def filterByUserName(userName: UserName): Try[Query[UserTable, User, Seq]] = Try {
+  def filterByUserName(userName: UserName): Query[UserTable, User, Seq] =
     instance.filter(user => user.userName === userName)
-  }
 
-  def filterByUserPass(userName: UserName, password: String): Try[Query[UserTable, User, Seq]] = Try {
+  def filterByUserPass(userName: UserName, password: String): Query[UserTable, User, Seq] =
     instance.filter(user => user.userName === userName && user.password === password)
-  }
 }

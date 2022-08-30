@@ -4,5 +4,6 @@ import models.fields.IDCard
 
 case class Appeal(
   idCard: IDCard,
-  reason: String
+  reason: String,
+  time: Long
 )

@@ -1,18 +1,18 @@
 package service
 
-import models.{Policy, Trace}
 import org.joda.time.DateTime
-import slick.jdbc.PostgresProfile.api._
-import tables.{PolicyTableInstance, UserTraceTableInstance}
-import utils.db.await
-
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.Try
+import slick.jdbc.PostgresProfile.api._
+
+import models.{Policy, Trace}
+import tables.PolicyTableInstance
+import utils.db.await
 
 object PolicyService {
   def policyQuery(place: Trace): Try[String] = Try {
     await(
-      PolicyTableInstance.filterByPlace(place).get
+      PolicyTableInstance.filterByPlace(place)
         .map(policy => policy.contents)
         .result
         .head
@@ -23,7 +23,7 @@ object PolicyService {
   def policyUpdate(userToken: String, place: Trace, content: String, now: DateTime): Try[Int] = Try {
     await(
       (
-        UserService.findUserByToken(userToken, now).get.flatMap(userName => UserService.getUserPermission(userName).get).map(
+        UserService.checkPermission(userToken, now).map(
           {
             case None => throw exceptions.NoPermission()
             case Some(permission) =>

@@ -21,12 +21,12 @@ object DangerousPlaceTableInstance {
   val instance = TableQuery[DangerousPlaceTable]
   await(instance.schema.createIfNotExists)
 
-  def filterByPlace(place: Trace): Try[Query[DangerousPlaceTable, DangerousPlace, Seq]] = Try {
+  def filterByPlace(place: Trace): Query[DangerousPlaceTable, DangerousPlace, Seq] = {
     import models.CustomColumnTypes._
     instance.filter(dangerous_place => dangerous_place.place === place)
   }
 
-  def filterByRiskLevel(level: RiskLevel): Try[Query[DangerousPlaceTable, DangerousPlace, Seq]] = Try {
+  def filterByRiskLevel(level: RiskLevel): Query[DangerousPlaceTable, DangerousPlace, Seq] = {
     import models.CustomColumnTypes._
     instance.filter(dangerous_place => dangerous_place.level === level)
   }

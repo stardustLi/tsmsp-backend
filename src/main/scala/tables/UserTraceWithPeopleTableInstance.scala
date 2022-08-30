@@ -20,7 +20,6 @@ object UserTraceWithPeopleTableInstance {
   val instance = TableQuery[UserTraceWithPeopleTable]
   await(instance.schema.createIfNotExists)
 
-  def filterByIDCard(idCard: IDCard): Try[Query[UserTraceWithPeopleTable, UserTraceWithPeople, Seq]] = Try {
+  def filterByIDCard(idCard: IDCard): Query[UserTraceWithPeopleTable, UserTraceWithPeople, Seq] =
     instance.filter(trace => trace.ThisPeople === idCard)
-  }
 }

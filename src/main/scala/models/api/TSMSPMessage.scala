@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.{JsonSubTypes, JsonTypeInfo}
 import org.joda.time.DateTime
 
 import scala.util.{Failure, Success, Try}
+import models.api.appeal._
 import models.api.trace._
 import models.types.JacksonSerializable
 import models.{HandleStatus, TSMSPReply}
@@ -24,7 +25,10 @@ import models.{HandleStatus, TSMSPReply}
     new JsonSubTypes.Type(value = classOf[SetDangerousPlaceMessage], name = "SetDangerousPlaceMessage"),
     new JsonSubTypes.Type(value = classOf[DangerousPlaceMessage], name = "DangerousPlaceMessage"),
     new JsonSubTypes.Type(value = classOf[SetPermissionMessage], name = "SetPermissionMessage"),
-  ))
+    new JsonSubTypes.Type(value = classOf[QueryAppealMessage], name = "QueryAppealMessage"),
+    new JsonSubTypes.Type(value = classOf[ResolveAppealMessage], name = "ResolveAppealMessage"),
+  )
+)
 abstract class TSMSPMessage extends JacksonSerializable {
   def handle(): TSMSPReply = reaction(DateTime.now()) match {
     case Success(value) => value

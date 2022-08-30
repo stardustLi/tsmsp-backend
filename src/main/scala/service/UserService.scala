@@ -2,10 +2,10 @@ package service
 
 import com.typesafe.scalalogging.Logger
 import org.joda.time.DateTime
-
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.Try
 import slick.jdbc.PostgresProfile.api._
+
 import models.fields.{IDCard, UserName}
 import models.{User, UserPermission, UserToken}
 import tables.{UserPermissionTableInstance, UserTable, UserTableInstance, UserTokenTable, UserTokenTableInstance}
@@ -16,19 +16,19 @@ object UserService {
   val LOGGER: Logger = Logger("UserService")
 
   def login(userName: UserName, password: String, now: DateTime): Try[String] = Try {
-    val userQuery: Query[UserTable, User, Seq] = UserTableInstance.filterByUserPass(userName, password).get
+    val userQuery: Query[UserTable, User, Seq] = UserTableInstance.filterByUserPass(userName, password)
     await(
       userQuery.result.flatMap(
         user => {
           if (user.isEmpty) throw exceptions.WrongPassword()
-          futureCheckToken(userName, now).get
+          checkToken(userName, now)
         }
       ).transactionally
     )
   }
 
   def register(userName: UserName, password: String, realName: String, idCard: IDCard, now: DateTime): Try[String] = Try {
-    val userQuery: Query[UserTable, User, Seq] = UserTableInstance.filterByUserName(userName).get
+    val userQuery: Query[UserTable, User, Seq] = UserTableInstance.filterByUserName(userName)
     await(
       userQuery.result.flatMap(
         user => {
@@ -47,7 +47,23 @@ object UserService {
     )
   }
 
-  def findUserByToken(token: String, now: DateTime): Try[DBIO[UserName]] = Try {
+  def apiSetPermission(token: String, permission: UserPermission, now: DateTime): Try[Int] = Try {
+    await(
+      (
+        checkPermission(token, now).map(
+          {
+            case None => throw exceptions.NoPermission()
+            case Some(permission) =>
+              if (!permission.admin) throw exceptions.NoPermission()
+          }
+        ) >>
+          UserPermissionTableInstance.instance.insertOrUpdate(permission)
+        )
+        .transactionally
+    )
+  }
+
+  def findUserByToken(token: String, now: DateTime): DBIO[UserName] =
     UserTokenTableInstance.instance
       .filter(
         user => user.token === token && user.refreshTime >= now.minusHours(2).getMillis()
@@ -59,9 +75,8 @@ object UserService {
           user.head.userName
         }
       )
-  }
 
-  def findUserByIDCard(idCard: IDCard, now: DateTime): Try[DBIO[UserName]] = Try {
+  def findUserByIDCard(idCard: IDCard): DBIO[UserName] =
     UserTableInstance.instance
       .filter(
         user => user.idCard === idCard
@@ -73,40 +88,23 @@ object UserService {
           user.head.userName
         }
       )
-  }
 
-  def checkUserHasAccess(user: UserName, other: UserName): Try[DBIO[Boolean]] = Try {
+  def checkUserHasAccess(user: UserName, other: UserName): DBIO[Boolean] =
     // TODO: to finish
     DBIO.successful(user == other)
-  }
 
-  def checkUserHasAccessByTokenAndIDCard(token: String, idCard: IDCard, now: DateTime): Try[DBIO[Boolean]] = Try {
-    (findUserByToken(token, now).get zip findUserByIDCard(idCard, now).get)
-      .flatMap(result => checkUserHasAccess(result._1, result._2).get)
-  }
+  def checkUserHasAccessByTokenAndIDCard(token: String, idCard: IDCard, now: DateTime): DBIO[Boolean] =
+    (findUserByToken(token, now) zip findUserByIDCard(idCard))
+      .flatMap(result => checkUserHasAccess(result._1, result._2))
 
-  def getUserPermission(userName: UserName): Try[DBIO[Option[UserPermission]]] = Try {
-    UserPermissionTableInstance.filterByUserName(userName).get.result.headOption
-  }
+  def getUserPermission(userName: UserName): DBIO[Option[UserPermission]] =
+    UserPermissionTableInstance.filterByUserName(userName).result.headOption
 
-  def apiSetPermission(token: String, permission: UserPermission, now: DateTime) = Try {
-    await(
-      (
-        findUserByToken(token, now).get.flatMap(userName => getUserPermission(userName).get).map(
-          {
-            case None => throw exceptions.NoPermission()
-            case Some(permission) =>
-              if (!permission.admin) throw exceptions.NoPermission()
-          }
-        ) >>
-          UserPermissionTableInstance.instance.insertOrUpdate(permission)
-      )
-      .transactionally
-    )
-  }
+  def checkPermission(token: String, now: DateTime): DBIO[Option[UserPermission]] =
+    findUserByToken(token, now).flatMap(getUserPermission)
 
-  def futureCheckToken(userName: UserName, now: DateTime): Try[DBIO[String]] = Try {
-    val tokenQuery: Query[UserTokenTable, UserToken, Seq] = UserTokenTableInstance.filterByUserName(userName).get
+  def checkToken(userName: UserName, now: DateTime): DBIO[String] = {
+    val tokenQuery: Query[UserTokenTable, UserToken, Seq] = UserTokenTableInstance.filterByUserName(userName)
     tokenQuery.result.flatMap(
       user => {
         if (user.isEmpty) throw exceptions.UserNotExists()
@@ -115,7 +113,7 @@ object UserService {
         LOGGER.info(entry.userName + ", " + entry.token + ", " + entry.refreshTime)
 
         if (entry.refreshTime >= now.minusHours(2).getMillis) {
-          UserTokenTableInstance.filterByUserName(userName).get.map(
+          UserTokenTableInstance.filterByUserName(userName).map(
             user => user.refreshTime
           ).update(
             now.getMillis
@@ -124,7 +122,7 @@ object UserService {
           )
         } else {
           val newToken = randomToken(30)
-          UserTokenTableInstance.filterByUserName(userName).get.map(
+          UserTokenTableInstance.filterByUserName(userName).map(
             user => (user.token, user.refreshTime)
           ).update(
             (newToken, now.getMillis)

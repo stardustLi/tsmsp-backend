@@ -1,9 +1,10 @@
-package models.api
+package models.api.appeal
 
-import models.fields.IDCard
 import org.joda.time.DateTime
-
 import scala.util.Try
+
+import models.api.TSMSPMessage
+import models.fields.IDCard
 import models.{HandleStatus, TSMSPReply}
 import service.CodeService.addAppeal
 
@@ -12,4 +13,3 @@ case class UserAppealMessage(userToken: String, idCard: IDCard, reason: String) 
     TSMSPReply(HandleStatus.OK, addAppeal(userToken, idCard, reason, now).get)
   }
 }
-

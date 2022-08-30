@@ -20,7 +20,6 @@ object UserTokenTableInstance {
   val instance = TableQuery[UserTokenTable]
   await(instance.schema.createIfNotExists)
 
-  def filterByUserName(userName: UserName): Try[Query[UserTokenTable, UserToken, Seq]] = Try {
+  def filterByUserName(userName: UserName): Query[UserTokenTable, UserToken, Seq] =
     instance.filter(user => user.userName === userName)
-  }
 }

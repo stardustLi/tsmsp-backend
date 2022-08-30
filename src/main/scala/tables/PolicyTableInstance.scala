@@ -20,7 +20,7 @@ object PolicyTableInstance {
   val instance = TableQuery[PolicyTable]
   await(instance.schema.createIfNotExists)
 
-  def filterByPlace(place: Trace): Try[Query[PolicyTable, Policy, Seq]] = Try {
+  def filterByPlace(place: Trace): Query[PolicyTable, Policy, Seq] = {
     import models.CustomColumnTypes._
     instance.filter(policy => policy.place === place)
   }
