@@ -14,11 +14,12 @@ import utils.db.await
 object DangerousPlaceService {
   def dangerousQuery(place: Trace): Try[RiskLevel] = Try {
     await(
-      DangerousPlaceTableInstance.filterByPlace(place)
-        .map(place => place.level)
-        .result
-        .head
-        .transactionally
+      (
+        DangerousPlaceTableInstance.filterByPlace(place)
+          .map(place => place.level)
+          .result
+          .head
+      ).transactionally
     )
   }
 
@@ -40,10 +41,11 @@ object DangerousPlaceService {
   def DangerousPlaceQuery(level: RiskLevel): Try[List[Trace]] = Try {
     import models.CustomColumnTypes._
     await(
-      DangerousPlaceTableInstance.filterByRiskLevel(level)
-        .map(place => place.place)
-        .result
-        .transactionally
+      (
+        DangerousPlaceTableInstance.filterByRiskLevel(level)
+          .map(place => place.place)
+          .result
+      ).transactionally
     ).toList
   } //用于查询当前中高风险地区
 }
