@@ -27,6 +27,7 @@ import models.{HandleStatus, TSMSPReply}
     new JsonSubTypes.Type(value = classOf[SetPermissionMessage], name = "SetPermissionMessage"),
     new JsonSubTypes.Type(value = classOf[QueryAppealMessage], name = "QueryAppealMessage"),
     new JsonSubTypes.Type(value = classOf[ResolveAppealMessage], name = "ResolveAppealMessage"),
+    new JsonSubTypes.Type(value = classOf[JingReportMessage], name = "JingReportMessage"),
   )
 )
 abstract class TSMSPMessage extends JacksonSerializable {

@@ -266,21 +266,6 @@ async function test() {
 				const result6 = await POST(qdata);
 				assert.equal(result6.status, 0);
 				assert.equal(result6.message, null);
-
-				data.content = '欢迎来到猫宽世界！';
-				const result7 = await POST(data);
-				assert.equal(result7.status, 0);
-				assert.equal(result7.message, 1);
-
-				qdata.place.county = '真猫';
-				const result8 = await POST(qdata);
-				assert.equal(result8.status, 0);
-				assert.equal(result8.message, policies[1]);
-
-				qdata.place.county = '假猫';
-				const result9 = await POST(qdata);
-				assert.equal(result9.status, 0);
-				assert.equal(result9.message, '欢迎来到猫宽世界！');
 			}, false);
 		}
 
@@ -384,7 +369,6 @@ async function test() {
 		}
 
 		{ // 申诉测试
-			let time = 0;
 			// 添加状态申诉
 			await startModule('UserAppealMessage', async type => {
 				const data = { type, userToken, idCard, reason: '我要抱猫猫！' };
@@ -419,7 +403,7 @@ async function test() {
 				assert.equal(result3.status, 0);
 				assert.equal(result3.message.idCard, idCard);
 				assert.equal(result3.message.reason, '我要抱猫猫！');
-				({ time } = result3.message);
+				assert.equal(typeof result3.message.time, 'number');
 
 				data.idCard = +hzkIdCard + 1;
 				const result4 = await POST(data);
@@ -455,6 +439,24 @@ async function test() {
 			});
 		}
 
+		{ // 进京报备
+			// 添加进京报备
+			await startModule('JingReportMessage', async type => {
+				const data = { type, userToken, idCard, reason: '猫猫抱起来舒服！' };
+				let result = await POST(data);
+				if (result.status === 0) {
+					assert.equal(result.message, 1);
+					result = await POST(data);
+				}
+				assert.equal(result.status, -1);
+				// assert(result.message.includes('duplicate'));
+
+				data.reason = '宽宽抱起来不舒服！';
+				result = await POST(data);
+				assert.equal(result.status, -1);
+				// assert(result.message.includes('duplicate'));
+			});
+		}
 	} catch (e) {
 		console.log('测试失败，错误:', e);
 	}

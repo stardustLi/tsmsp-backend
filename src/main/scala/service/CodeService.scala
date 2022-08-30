@@ -5,9 +5,9 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.Try
 import slick.jdbc.PostgresProfile.api._
 
-import models.Appeal
+import models.{Appeal, JingReport}
 import models.fields.IDCard
-import tables.UserAppealTableInstance
+import tables.{JingReportTableInstance, UserAppealTableInstance}
 import utils.db.await
 
 object CodeService {
@@ -16,6 +16,15 @@ object CodeService {
       UserService.checkUserHasAccessByTokenAndIDCard(userToken, idCard, now).flatMap(hasAccess => {
         if (!hasAccess) throw exceptions.NoAccessOfIdCard(idCard)
         UserAppealTableInstance.instance += Appeal(idCard, reason, now.getMillis)
+      }).transactionally
+    )
+  }
+
+  def jingReport(userToken: String, idCard: IDCard, reason: String, now: DateTime): Try[Int] = Try {
+    await(
+      UserService.checkUserHasAccessByTokenAndIDCard(userToken, idCard, now).flatMap(hasAccess => {
+        if (!hasAccess) throw exceptions.NoAccessOfIdCard(idCard)
+        JingReportTableInstance.instance += JingReport(idCard, reason, now.getMillis)
       }).transactionally
     )
   }
