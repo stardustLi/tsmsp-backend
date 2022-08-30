@@ -198,7 +198,7 @@ async function test() {
 			const policies = ['卷宽卷宽喵希喵希！', '猫猫和真猫贴贴！'];
 
 			for (let t = 0; t < 2; ++t) {
-				console.log(`\x1b[35m政策修改第 \x1b[32m${t + 1}/2\x1b[35m 轮 ...\x1b[0m\n`);
+				console.log(`\x1b[35m政策修改第 \x1b[32m${t + 1}/2\x1b[35m 轮 ...\x1b[0m`);
 				await startModule('PolicyUpdateMessage', async type => {
 					const data = { type, userToken, place, content: policies[t] };
 					const result1 = await POST(data);
@@ -223,7 +223,8 @@ async function test() {
 			await startModule('PolicyQueryMessage', async type => {
 				const data = { type, place: { province: '不存在的', city: '坏了', county: '没了' } };
 				const result = await POST(data);
-				assert.equal(result.status, -1);
+				assert.equal(result.status, 0);
+				assert.equal(result.message, null);
 
 				data.place = { '猫猫': '宽宽' };
 				try {
@@ -233,12 +234,45 @@ async function test() {
 					assert.equal(e.message, 'Unexpected token U in JSON at position 0');
 				}
 			}, false);
+
+			console.log('\x1b[1;35m政策继承测试 ...\x1b[0m');
+			await startModule('PolicyUpdateMessage', async type => {
+				const data = { type, userToken: rootToken, place: { province: '卷猫', city: '', county: '' }, content: '猫宽学！' };
+				const result1 = await POST(data);
+				assert.equal(result1.status, 0);
+				assert.equal(result1.message, 1);
+
+				const qdata = { type: 'PolicyQueryMessage', place };
+				const result2 = await POST(qdata);
+				assert.equal(result2.status, 0);
+				assert.equal(result2.message, policies[1]);
+
+				qdata.place = { ...place, county: '假猫' };
+				const result3 = await POST(qdata);
+				assert.equal(result3.status, 0);
+				assert.equal(result3.message, '猫宽学！');
+
+				data.content = '';
+				const result4 = await POST(data);
+				assert.equal(result4.status, 0);
+				assert.equal(result4.message, 1);
+
+				qdata.place.county = '真猫';
+				const result5 = await POST(qdata);
+				assert.equal(result5.status, 0);
+				assert.equal(result5.message, policies[1]);
+
+				qdata.place.county = '假猫';
+				const result6 = await POST(qdata);
+				assert.equal(result6.status, 0);
+				assert.equal(result6.message, null);
+			}, false);
 		}
 
 		{ // 风险区测试
 			// 风险区修改和查询
 			for (let t = 0; t < 3; ++t) {
-				console.log(`\x1b[35m风险区修改第 \x1b[32m${t + 1}/3\x1b[35m 轮 ...\x1b[0m\n`);
+				console.log(`\x1b[35m风险区修改第 \x1b[32m${t + 1}/3\x1b[35m 轮 ...\x1b[0m`);
 				await startModule('SetDangerousPlaceMessage', async type => {
 					const data = { type, userToken, place, level: t };
 					const result1 = await POST(data);

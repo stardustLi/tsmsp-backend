@@ -10,13 +10,39 @@ import tables.PolicyTableInstance
 import utils.db.await
 
 object PolicyService {
-  def policyQuery(place: Trace): Try[String] = Try {
+  def policyQuery(place: Trace): Try[Option[String]] = Try {
     await(
-      PolicyTableInstance.filterByPlace(place)
-        .map(policy => policy.contents)
-        .result
-        .head
-        .transactionally
+      (
+        PolicyTableInstance.filterByPlace(place)
+          .map(policy => policy.contents)
+          .result
+          .headOption
+      ).flatMap(
+        {
+          case Some(policy) if policy.nonEmpty => DBIO.successful(Some(policy))
+          case _ =>
+            val place12 = Trace(place.province, place.city, "")
+            PolicyTableInstance.filterByPlace(place12)
+              .map(policy => policy.contents)
+              .result
+              .headOption
+        }
+      ).flatMap(
+        {
+          case Some(policy) if policy.nonEmpty => DBIO.successful(Some(policy))
+          case _ =>
+            val place1 = Trace(place.province, "", "")
+            PolicyTableInstance.filterByPlace(place1)
+              .map(policy => policy.contents)
+              .result
+              .headOption
+        }
+      ).flatMap(
+        {
+          case Some(policy) if policy.nonEmpty => DBIO.successful(Some(policy))
+          case _ => DBIO.successful(None)
+        }
+      ).transactionally
     )
   }
 
