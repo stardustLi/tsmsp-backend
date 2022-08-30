@@ -266,6 +266,21 @@ async function test() {
 				const result6 = await POST(qdata);
 				assert.equal(result6.status, 0);
 				assert.equal(result6.message, null);
+
+				data.content = '欢迎来到猫宽世界！';
+				const result7 = await POST(data);
+				assert.equal(result7.status, 0);
+				assert.equal(result7.message, 1);
+
+				qdata.place.county = '真猫';
+				const result8 = await POST(qdata);
+				assert.equal(result8.status, 0);
+				assert.equal(result8.message, policies[1]);
+
+				qdata.place.county = '假猫';
+				const result9 = await POST(qdata);
+				assert.equal(result9.status, 0);
+				assert.equal(result9.message, '欢迎来到猫宽世界！');
 			}, false);
 		}
 
