@@ -36,4 +36,14 @@ object DangerousPlaceService {
       ).transactionally
     )
   }
+
+  def DangerousPlaceQuery(level: RiskLevel): Try[List[Trace]] = Try {
+    import models.CustomColumnTypes._
+    await(
+      DangerousPlaceTableInstance.filterByRiskLevel(level)
+        .map(place => place.place)
+        .result
+        .transactionally
+    ).toList
+  } //用于查询当前中高风险地区
 }
