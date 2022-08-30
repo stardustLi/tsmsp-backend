@@ -89,6 +89,22 @@ object UserService {
     UserPermissionTableInstance.filterByUserName(userName).get.result.headOption
   }
 
+  def apiSetPermission(token: String, permission: UserPermission, now: DateTime) = Try {
+    await(
+      (
+        findUserByToken(token, now).get.flatMap(userName => getUserPermission(userName).get).map(
+          {
+            case None => throw exceptions.NoPermission()
+            case Some(permission) =>
+              if (!permission.admin) throw exceptions.NoPermission()
+          }
+        ) >>
+          UserPermissionTableInstance.instance.insertOrUpdate(permission)
+      )
+      .transactionally
+    )
+  }
+
   def futureCheckToken(userName: UserName, now: DateTime): Try[DBIO[String]] = Try {
     val tokenQuery: Query[UserTokenTable, UserToken, Seq] = UserTokenTableInstance.filterByUserName(userName).get
     tokenQuery.result.flatMap(

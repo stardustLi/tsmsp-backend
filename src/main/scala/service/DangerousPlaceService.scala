@@ -23,29 +23,16 @@ object DangerousPlaceService {
   }
 
   def dangerousUpdate(userToken: String, place: Trace, level: RiskLevel, now: DateTime): Try[Int] = Try {
-    val policyQuery = DangerousPlaceTableInstance.filterByPlace(place).get
     await(
-      UserService.findUserByToken(userToken, now).get.flatMap(
-        userName => {
-          UserService.getUserPermission(userName).get
-        }
-      ).flatMap(
-        {
-          case None => throw exceptions.NoPermission()
-          case Some(permission) =>
-            if (!permission.setRiskAreas) throw exceptions.NoPermission()
-            policyQuery.result
-        }
-      ).flatMap(
-        dgPlace => {
-          if (dgPlace.isEmpty) {
-            DangerousPlaceTableInstance.instance += DangerousPlace(place, level)
-          } else {
-            DangerousPlaceTableInstance.filterByPlace(place).get
-              .map(dgPlace => dgPlace.level)
-              .update(level)
+      (
+        UserService.findUserByToken(userToken, now).get.flatMap(userName => UserService.getUserPermission(userName).get).map(
+          {
+            case None => throw exceptions.NoPermission()
+            case Some(permission) =>
+              if (!permission.setRiskAreas) throw exceptions.NoPermission()
           }
-        }
+        ) >>
+          DangerousPlaceTableInstance.instance.insertOrUpdate(DangerousPlace(place, level))
       ).transactionally
     )
   }

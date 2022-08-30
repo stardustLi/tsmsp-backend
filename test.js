@@ -119,7 +119,7 @@ async function test() {
 				const data = { type, place: { province: '不存在的', city: '坏了', county: '没了' } };
 				const result = await POST(data);
 				assert.equal(result.status, -1);
-	
+
 				data.place = { '猫猫': '宽宽' };
 				try {
 					await POST(data);
@@ -255,7 +255,7 @@ async function test() {
 		{ // 风险区测试
 			// 风险区修改和查询
 			for (let t = 0; t < 3; ++t) {
-				console.log(`\x1b[35m风险区修改第 \x1b[32m${t + 1}/2\x1b[35m 轮 ...\x1b[0m\n`);
+				console.log(`\x1b[35m风险区修改第 \x1b[32m${t + 1}/3\x1b[35m 轮 ...\x1b[0m\n`);
 				await startModule('SetDangerousPlaceMessage', async type => {
 					const data = { type, userToken, place, level: t };
 					const result1 = await POST(data);
@@ -281,7 +281,7 @@ async function test() {
 				const data = { type, place: { province: '不存在的', city: '坏了', county: '没了' } };
 				const result = await POST(data);
 				assert.equal(result.status, -1);
-	
+
 				data.place = { '猫猫': '宽宽' };
 				try {
 					await POST(data);
@@ -292,9 +292,78 @@ async function test() {
 			}, false);
 		}
 
+		{ // 权限更改测试
+			const permission = { userName: 'cat', setRiskAreas: true };
+			await startModule('SetPermissionMessage', async type => {
+				const data = { type, userToken, permission };
+				const result1 = await POST(data);
+				assert.equal(result1.status, -1);
+				assert.equal(result1.message, '错误！没有权限进行此操作');
+
+				data.userToken = rootToken;
+				const result2 = await POST(data);
+				assert.equal(result2.status, 0);
+				assert.equal(result2.message, 1);
+
+				{
+					const data1 = { type: 'SetDangerousPlaceMessage', userToken, place, level: 2 };
+					const result1 = await POST(data1);
+					assert.equal(result1.status, 0);
+					assert.equal(result1.message, 1);
+
+					const data2 = { type: 'DangerousPlaceMessage', place };
+					const result2 = await POST(data2);
+					assert.equal(result2.status, 0);
+					assert.equal(result2.message, 2);
+
+					const data3 = { type: 'PolicyUpdateMessage', userToken, place, content: '改不了的' };
+					const result3 = await POST(data3);
+					assert.equal(result3.status, -1);
+					assert.equal(result3.message, '错误！没有权限进行此操作');
+				}
+
+				data.permission = { userName: 'cat', setPolicy: true };
+				const result3 = await POST(data);
+				assert.equal(result3.status, 0);
+				assert.equal(result3.message, 1);
+
+				{
+					const data1 = { type: 'PolicyUpdateMessage', userToken, place, content: '卷宽太坏了' };
+					const result1 = await POST(data1);
+					assert.equal(result1.status, 0);
+					assert.equal(result1.message, 1);
+
+					const data2 = { type: 'PolicyQueryMessage', place };
+					const result2 = await POST(data2);
+					assert.equal(result2.status, 0);
+					assert.equal(result2.message, '卷宽太坏了');
+
+					const data3 = { type: 'SetDangerousPlaceMessage', userToken, place, level: 1 };
+					const result3 = await POST(data3);
+					assert.equal(result3.status, -1);
+					assert.equal(result3.message, '错误！没有权限进行此操作');
+				}
+
+				data.permission = { userName: 'cat' };
+				const result4 = await POST(data);
+				assert.equal(result4.status, 0);
+				assert.equal(result4.message, 1);
+			});
+		}
 	} catch (e) {
-		console.log('测试失败，错误:', e);
-	}
+	console.log('测试失败，错误:', e);
+}
 }
 
 test();
+
+/*
+
+await startModule('<message type>Message', async type => {
+	const data = { type, userToken, ... };
+	const result = await POST(data);
+	assert.equal(result.status, 0);
+	assert.equal(result.message, 1);
+});
+
+*/

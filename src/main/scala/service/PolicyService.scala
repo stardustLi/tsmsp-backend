@@ -21,29 +21,16 @@ object PolicyService {
   }
 
   def policyUpdate(userToken: String, place: Trace, content: String, now: DateTime): Try[Int] = Try {
-    val policyQuery = PolicyTableInstance.filterByPlace(place).get
     await(
-      UserService.findUserByToken(userToken, now).get.flatMap(
-        userName => {
-          UserService.getUserPermission(userName).get
-        }
-      ).flatMap(
-        {
-          case None => throw exceptions.NoPermission()
-          case Some(permission) =>
-            if (!permission.setPolicy) throw exceptions.NoPermission()
-            policyQuery.result
-        }
-      ).flatMap(
-        policy => {
-          if (policy.isEmpty) {
-            PolicyTableInstance.instance += Policy(place, content)
-          } else {
-            PolicyTableInstance.filterByPlace(place).get
-              .map(policy => policy.contents)
-              .update(content)
+      (
+        UserService.findUserByToken(userToken, now).get.flatMap(userName => UserService.getUserPermission(userName).get).map(
+          {
+            case None => throw exceptions.NoPermission()
+            case Some(permission) =>
+              if (!permission.setPolicy) throw exceptions.NoPermission()
           }
-        }
+        ) >>
+          PolicyTableInstance.instance.insertOrUpdate(Policy(place, content))
       ).transactionally
     )
   }
