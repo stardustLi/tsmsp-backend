@@ -11,7 +11,7 @@ import scala.util.Try
 
 object PolicyService {
   def policyQuery(place: Trace): Try[String] = Try {
-    await (
+    await(
       PolicyTableInstance.filterByPlace(place).get
         .map(policy => policy.contents)
         .result
@@ -20,10 +20,21 @@ object PolicyService {
     )
   }
 
-  def policyUpdate(place: Trace, content: String): Try[Int] = Try {
+  def policyUpdate(userToken: String, place: Trace, content: String, now: DateTime): Try[Int] = Try {
     val policyQuery = PolicyTableInstance.filterByPlace(place).get
-    await (
-      policyQuery.result.flatMap(
+    await(
+      UserService.findUserByToken(userToken, now).get.flatMap(
+        userName => {
+          UserService.getUserPermission(userName).get
+        }
+      ).flatMap(
+        {
+          case None => throw exceptions.NoPermission()
+          case Some(permission) =>
+            if (!permission.setPolicy) throw exceptions.NoPermission()
+            policyQuery.result
+        }
+      ).flatMap(
         policy => {
           if (policy.isEmpty) {
             PolicyTableInstance.instance += Policy(place, content)

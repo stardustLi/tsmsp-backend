@@ -15,7 +15,7 @@ import com.typesafe.scalalogging.Logger
 import scala.util.{Failure, Success}
 
 object TSMSPPortalHttpServer {
-  val LOGGER = Logger("HttpServer")
+  val LOGGER: Logger = Logger("HttpServer")
 
   /* 搭建 http 服务器，监听相应端口 */
   def startHttpServer(routes: Route, system: ActorSystem[_]): Unit = {

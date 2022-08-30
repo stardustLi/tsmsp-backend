@@ -22,6 +22,10 @@ case class UserNameAlreadyExists() extends Exception {
   override def getMessage: String = "错误！用户名已经存在了"
 }
 
-case class noAccessOfIdCard(idCard: IDCard) extends Exception {
+case class NoAccessOfIdCard(idCard: IDCard) extends Exception {
   override def getMessage: String = s"错误！无权限访问身份证号为 ${idCard} 的用户！"
+}
+
+case class NoPermission() extends Exception {
+  override def getMessage: String = "错误！没有权限进行此操作"
 }

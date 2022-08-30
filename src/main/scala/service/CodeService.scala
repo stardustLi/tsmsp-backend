@@ -15,7 +15,7 @@ object CodeService {
   def addAppeal(userToken: String, idCard: IDCard, reason: String, now: DateTime): Try[Int] = Try {
     await(
       UserService.checkUserHasAccessByTokenAndIDCard(userToken, idCard, now).get.flatMap(hasAccess => {
-        if (!hasAccess) throw exceptions.noAccessOfIdCard(idCard)
+        if (!hasAccess) throw exceptions.NoAccessOfIdCard(idCard)
         UserAppealTableInstance.instance += Appeal(idCard, reason)
       }).transactionally
     )

@@ -2,18 +2,18 @@ package service
 
 import com.typesafe.scalalogging.Logger
 import org.joda.time.DateTime
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.Try
 import slick.jdbc.PostgresProfile.api._
-
 import models.fields.{IDCard, UserName}
-import models.{User, UserToken}
-import tables.{UserTable, UserTableInstance, UserTokenTable, UserTokenTableInstance}
+import models.{User, UserPermission, UserToken}
+import tables.{UserPermissionTableInstance, UserTable, UserTableInstance, UserTokenTable, UserTokenTableInstance}
 import utils.db.await
 import utils.string.randomToken
 
 object UserService {
-  val LOGGER = Logger("UserService")
+  val LOGGER: Logger = Logger("UserService")
 
   def login(userName: UserName, password: String, now: DateTime): Try[String] = Try {
     val userQuery: Query[UserTable, User, Seq] = UserTableInstance.filterByUserPass(userName, password).get
@@ -33,14 +33,16 @@ object UserService {
       userQuery.result.flatMap(
         user => {
           if (user.nonEmpty) throw exceptions.UserNameAlreadyExists()
-          val token = randomToken(30)
-          (
+          val token = randomToken(length = 30)
+          var op: DBIO[Int] =
             (UserTableInstance.instance += User(userName, password, realName, idCard)) >>
             (UserTokenTableInstance.instance += UserToken(userName, token, now.getMillis))
-          ) zip (DBIO.successful(token))
+          if (userName.value == "root") {
+            op = op >>
+              (UserPermissionTableInstance.instance += UserPermissionTableInstance.all(userName))
+          }
+          op >> DBIO.successful(token)
         }
-      ).map(
-        result => result._2
       ).transactionally
     )
   }
@@ -81,6 +83,10 @@ object UserService {
   def checkUserHasAccessByTokenAndIDCard(token: String, idCard: IDCard, now: DateTime): Try[DBIO[Boolean]] = Try {
     (findUserByToken(token, now).get zip findUserByIDCard(idCard, now).get)
       .flatMap(result => checkUserHasAccess(result._1, result._2).get)
+  }
+
+  def getUserPermission(userName: UserName): Try[DBIO[Option[UserPermission]]] = Try {
+    UserPermissionTableInstance.filterByUserName(userName).get.result.headOption
   }
 
   def futureCheckToken(userName: UserName, now: DateTime): Try[DBIO[String]] = Try {

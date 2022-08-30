@@ -1,20 +1,20 @@
 package service
 
 import models.fields.IDCard
-import models.{Trace, UserTrace}
+import models.{Trace, UserTrace, UserTraceWithPeople}
 import org.joda.time.DateTime
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.Try
 import slick.jdbc.PostgresProfile.api._
-import tables.UserTraceTableInstance
+import tables.{UserTraceTableInstance, UserTraceWithPeopleTableInstance}
 import utils.db.await
 
 object TraceService {
   def addTrace(userToken: String, idCard: IDCard, trace: Trace, now: DateTime): Try[Int] = Try {
     await(
       UserService.checkUserHasAccessByTokenAndIDCard(userToken, idCard, now).get.flatMap(hasAccess => {
-        if (!hasAccess) throw exceptions.noAccessOfIdCard(idCard)
+        if (!hasAccess) throw exceptions.NoAccessOfIdCard(idCard)
         UserTraceTableInstance.instance += UserTrace(idCard, trace, now.getMillis)
       }).transactionally
     )
@@ -23,7 +23,7 @@ object TraceService {
   def removeTrace(userToken: String, idCard: IDCard, time: Long, now: DateTime): Try[Int] = Try {
     await(
       UserService.checkUserHasAccessByTokenAndIDCard(userToken, idCard, now).get.flatMap(hasAccess => {
-        if (!hasAccess) throw exceptions.noAccessOfIdCard(idCard)
+        if (!hasAccess) throw exceptions.NoAccessOfIdCard(idCard)
         UserTraceTableInstance
           .filterByIDCard(idCard).get
           .filter(trace => trace.time === time)
@@ -36,7 +36,7 @@ object TraceService {
     import models.CustomColumnTypes._
     await(
       UserService.checkUserHasAccessByTokenAndIDCard(userToken, idCard, now).get.flatMap(hasAccess => {
-        if (!hasAccess) throw exceptions.noAccessOfIdCard(idCard)
+        if (!hasAccess) throw exceptions.NoAccessOfIdCard(idCard)
         UserTraceTableInstance
           .filterByIDCard(idCard).get
           .filter(trace => trace.time === time)
@@ -49,7 +49,7 @@ object TraceService {
   def getTraces(userToken: String, idCard: IDCard, startTime: Long, endTime: Long, now: DateTime): Try[List[UserTrace]] = Try {
     await(
       UserService.checkUserHasAccessByTokenAndIDCard(userToken, idCard, now).get.flatMap(hasAccess => {
-        if (!hasAccess) throw exceptions.noAccessOfIdCard(idCard)
+        if (!hasAccess) throw exceptions.NoAccessOfIdCard(idCard)
         UserTraceTableInstance
           .filterByIDCard(idCard).get
           .filter(trace => trace.time.between(startTime, endTime))
@@ -57,5 +57,14 @@ object TraceService {
           .result
       }).transactionally
     ).toList
+  }
+
+  def addTraceWithPeople(userToken: String, idCard: IDCard, personIdCard: IDCard, now: DateTime): Try[Int] = Try {
+    await(
+      UserService.checkUserHasAccessByTokenAndIDCard(userToken, idCard, now).get.flatMap(hasAccess => {
+        if (!hasAccess) throw exceptions.NoAccessOfIdCard(idCard)
+        UserTraceWithPeopleTableInstance.instance += UserTraceWithPeople(idCard, personIdCard, now.getMillis)
+      }).transactionally
+    )
   }
 }

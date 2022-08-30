@@ -6,7 +6,7 @@ import akka.actor.typed.scaladsl.Behaviors
 import com.typesafe.scalalogging.Logger
 
 object Server {
-  val LOGGER = Logger("MainServer")
+  val LOGGER: Logger = Logger("MainServer")
 
   def main(args: Array[String]): Unit = try {
     db.init()
