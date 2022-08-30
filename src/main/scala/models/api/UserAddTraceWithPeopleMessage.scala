@@ -3,7 +3,7 @@ package models.api
 import models.fields.IDCard
 import models.{HandleStatus, TSMSPReply, Trace}
 import org.joda.time.DateTime
-import service.TraceService.addTraceWithPeople
+import services.TraceService.addTraceWithPeople
 
 import scala.util.Try
 

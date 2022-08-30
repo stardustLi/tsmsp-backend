@@ -2,7 +2,7 @@ package models.api
 
 import models.{HandleStatus, TSMSPReply, Trace, UserPermission}
 import org.joda.time.DateTime
-import service.UserService.apiSetPermission
+import services.UserService.apiSetPermission
 
 import scala.util.Try
 

@@ -7,7 +7,7 @@ import models.JingReport
 import models.fields.IDCard
 import utils.db.await
 
-class JingReportTable(tag: Tag) extends Table[JingReport](tag, mainSchema, "user_appeal") {
+class JingReportTable(tag: Tag) extends Table[JingReport](tag, mainSchema, "jing_report") {
   def idCard = column[IDCard]("id_card", O.PrimaryKey)
   def reason = column[String]("reason")
   def time   = column[Long]("time")

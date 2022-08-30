@@ -1,4 +1,4 @@
-package service
+package services
 
 import com.typesafe.scalalogging.Logger
 import org.joda.time.DateTime
@@ -63,10 +63,20 @@ object UserService {
     )
   }
 
+  def getProfile(token: String, now: DateTime): Try[User] = Try {
+    await (
+      findUserByToken(token, now).flatMap(userName => {
+        UserTableInstance.filterByUserName(userName)
+          .result
+          .head
+      }).transactionally
+    )
+  }
+
   def findUserByToken(token: String, now: DateTime): DBIO[UserName] =
     UserTokenTableInstance.instance
       .filter(
-        user => user.token === token && user.refreshTime >= now.minusHours(2).getMillis()
+        user => user.token === token && user.refreshTime >= now.minusHours(2).getMillis
       )
       .result
       .map(
@@ -75,7 +85,6 @@ object UserService {
           user.head.userName
         }
       )
-
   def findUserByIDCard(idCard: IDCard): DBIO[UserName] =
     UserTableInstance.instance
       .filter(
@@ -88,11 +97,9 @@ object UserService {
           user.head.userName
         }
       )
-
   def checkUserHasAccess(user: UserName, other: UserName): DBIO[Boolean] =
     // TODO: to finish
     DBIO.successful(user == other)
-
   def checkUserHasAccessByTokenAndIDCard(token: String, idCard: IDCard, now: DateTime): DBIO[Boolean] =
     (findUserByToken(token, now) zip findUserByIDCard(idCard))
       .flatMap(result => checkUserHasAccess(result._1, result._2))
@@ -109,8 +116,6 @@ object UserService {
       user => {
         if (user.isEmpty) throw exceptions.UserNotExists()
         val entry: UserToken = user.head
-
-        LOGGER.info(entry.userName + ", " + entry.token + ", " + entry.refreshTime)
 
         if (entry.refreshTime >= now.minusHours(2).getMillis) {
           UserTokenTableInstance.filterByUserName(userName).map(

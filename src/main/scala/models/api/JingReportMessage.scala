@@ -3,7 +3,7 @@ package models.api
 import models.fields.IDCard
 import models.{HandleStatus, TSMSPReply}
 import org.joda.time.DateTime
-import service.CodeService.jingReport
+import services.CodeService.jingReport
 
 import scala.util.Try
 

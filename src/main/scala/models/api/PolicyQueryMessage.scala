@@ -2,7 +2,7 @@ package models.api
 
 import models.{HandleStatus, TSMSPReply, Trace}
 import org.joda.time.DateTime
-import service.PolicyService.policyQuery
+import services.PolicyService.policyQuery
 
 import scala.util.Try
 

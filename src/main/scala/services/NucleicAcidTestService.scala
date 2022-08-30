@@ -1,4 +1,4 @@
-package service
+package services
 
 import models.UserNucleicAcidTest
 import models.fields.IDCard

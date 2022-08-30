@@ -12,11 +12,12 @@ import models.{HandleStatus, TSMSPReply}
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes(
   Array(
+    new JsonSubTypes.Type(value = classOf[UserLoginMessage], name = "UserLoginMessage"),
+    new JsonSubTypes.Type(value = classOf[UserRegisterMessage], name = "UserRegisterMessage"),
+    new JsonSubTypes.Type(value = classOf[UserGetProfileMessage], name = "UserGetProfileMessage"),
     new JsonSubTypes.Type(value = classOf[UserAddTraceMessage], name = "UserAddTraceMessage"),
     new JsonSubTypes.Type(value = classOf[UserDeleteTraceMessage], name = "UserDeleteTraceMessage"),
     new JsonSubTypes.Type(value = classOf[UserGetTraceMessage], name = "UserGetTraceMessage"),
-    new JsonSubTypes.Type(value = classOf[UserLoginMessage], name = "UserLoginMessage"),
-    new JsonSubTypes.Type(value = classOf[UserRegisterMessage], name = "UserRegisterMessage"),
     new JsonSubTypes.Type(value = classOf[UserUpdateTraceMessage], name = "UserUpdateTraceMessage"),
     new JsonSubTypes.Type(value = classOf[PolicyQueryMessage], name = "PolicyQueryMessage"),
     new JsonSubTypes.Type(value = classOf[PolicyUpdateMessage], name = "PolicyUpdateMessage"),

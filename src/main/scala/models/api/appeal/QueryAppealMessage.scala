@@ -6,7 +6,7 @@ import scala.util.Try
 import models.api.TSMSPMessage
 import models.fields.IDCard
 import models.{HandleStatus, TSMSPReply}
-import service.CodeService.queryAppeal
+import services.CodeService.queryAppeal
 
 case class QueryAppealMessage(userToken: String, idCard: IDCard) extends TSMSPMessage {
   override def reaction(now: DateTime): Try[TSMSPReply] = Try {

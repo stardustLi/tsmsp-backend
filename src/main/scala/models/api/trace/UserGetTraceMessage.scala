@@ -6,7 +6,7 @@ import scala.util.Try
 import models.api.TSMSPMessage
 import models.fields.IDCard
 import models.{HandleStatus, TSMSPReply}
-import service.TraceService.getTraces
+import services.TraceService.getTraces
 
 case class UserGetTraceMessage(userToken: String, idCard: IDCard, startTime: Long, endTime: Long) extends TSMSPMessage {
   override def reaction(now: DateTime): Try[TSMSPReply] = Try {

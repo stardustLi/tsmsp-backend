@@ -1,4 +1,4 @@
-package service
+package services
 
 import org.joda.time.DateTime
 import slick.jdbc.PostgresProfile.api._

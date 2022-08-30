@@ -4,7 +4,7 @@ import com.typesafe.scalalogging.Logger
 import models.enums.RiskLevel
 import models.{HandleStatus, TSMSPReply, Trace}
 import org.joda.time.DateTime
-import service.DangerousPlaceService.dangerousUpdate
+import services.DangerousPlaceService.dangerousUpdate
 
 import scala.util.Try
 

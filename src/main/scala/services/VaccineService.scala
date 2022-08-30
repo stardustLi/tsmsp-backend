@@ -1,4 +1,4 @@
-package service
+package services
 
 import models.fields.IDCard
 import models.UserVaccine

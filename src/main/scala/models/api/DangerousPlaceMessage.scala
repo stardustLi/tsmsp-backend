@@ -2,7 +2,7 @@ package models.api
 
 import models.{HandleStatus, TSMSPReply, Trace}
 import org.joda.time.DateTime
-import service.DangerousPlaceService.dangerousQuery
+import services.DangerousPlaceService.dangerousQuery
 
 import scala.util.Try
 
