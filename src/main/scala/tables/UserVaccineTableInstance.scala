@@ -6,14 +6,14 @@ import slick.lifted.{ProvenShape, Tag}
 import scala.util.Try
 import globals.GlobalVariables.mainSchema
 import models.UserVaccine
-import models.fields.{IDCard, UserName}
+import models.fields.IDCard
 import utils.db.await
 
 class UserVaccineTable(tag: Tag) extends Table[UserVaccine](tag, mainSchema, "user_vaccine") {
   def idCard      = column[IDCard]("id_card")
   def manufacture = column[String]("manufacture")
   def time        = column[Long]("time")
-  def vaccineType      = column[Int]("number")
+  def vaccineType = column[Int]("number")
   def *           = (idCard, manufacture, time, vaccineType).mapTo[UserVaccine]
 }
 
