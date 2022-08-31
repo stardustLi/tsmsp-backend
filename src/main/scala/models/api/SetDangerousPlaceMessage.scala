@@ -2,7 +2,7 @@ package models.api
 
 import com.typesafe.scalalogging.Logger
 import models.enums.RiskLevel
-import models.{HandleStatus, TSMSPReply, Trace}
+import models.Trace
 import org.joda.time.DateTime
 import services.DangerousPlaceService.dangerousUpdate
 

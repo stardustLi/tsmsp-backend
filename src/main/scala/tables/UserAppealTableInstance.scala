@@ -19,5 +19,5 @@ object UserAppealTableInstance {
   await(instance.schema.createIfNotExists)
 
   def filterByIdCard(idCard: IDCard): Query[UserAppealTable, Appeal, Seq] =
-    instance.filter(Appeal => Appeal.idCard === idCard)
+    instance.filter(Appeal => Appeal.idCard === idCard.toLowerCase())
 }

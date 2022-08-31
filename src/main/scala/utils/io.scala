@@ -10,7 +10,7 @@ import scala.reflect.ClassTag
 import scala.swing.Dialog
 import scala.util.Try
 
-object IOUtils {
+object io {
   /* Jackson 使用的 object mapper */
   val objectMapper: ObjectMapper = new ObjectMapper().registerModule(DefaultScalaModule)
 
@@ -30,7 +30,7 @@ object IOUtils {
   }
 
   def toObject[T: ClassTag](inputString: Option[String]): Try[Option[T]] = Try {
-    inputString.map(IOUtils.deserialize[T](_).get)
+    inputString.map(io.deserialize[T](_).get)
   }
 
   /* 删除文件夹 */
@@ -72,7 +72,7 @@ object IOUtils {
     status = {
       if (success) StatusCodes.OK else StatusCodes.BadRequest
     },
-    entity = IOUtils.serialize(reply).get
+    entity = io.serialize(reply).get
   )
 
   def fromString(success: Boolean, reply: String): HttpResponse = HttpResponse(

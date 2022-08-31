@@ -1,13 +1,21 @@
 package exceptions
 
-import models.fields.IDCard
+import models.fields.{IDCard, UserName}
 
 case class TokenNotExists() extends Exception {
   override def getMessage: String = "错误！用户不存在或登录信息已过期！"
 }
 
-case class IDCardNotExists(idCard: IDCard) extends Exception {
-  override def getMessage: String = s"错误！不存在身份证号为 ${idCard} 的用户！"
+case class UserNameInvalid(userName: UserName) extends Exception {
+  override def getMessage: String = s"用户名 ${userName.value} 不合法！"
+}
+
+case class PasswordInvalid() extends Exception {
+  override def getMessage: String = s"密码太弱或包含非法字符！"
+}
+
+case class IDCardInvalid(idCard: IDCard) extends Exception {
+  override def getMessage: String = s"身份证号 ${idCard.value} 不合法！"
 }
 
 case class UserNotExists() extends Exception {
@@ -23,7 +31,7 @@ case class UserNameAlreadyExists() extends Exception {
 }
 
 case class NoAccessOfIdCard(idCard: IDCard) extends Exception {
-  override def getMessage: String = s"错误！无权限访问身份证号为 ${idCard} 的用户！"
+  override def getMessage: String = s"错误！无权限访问 (或不存在) 身份证号为 ${idCard.value} 的用户！"
 }
 
 case class NoPermission() extends Exception {

@@ -3,9 +3,9 @@ package models.api.trace
 import org.joda.time.DateTime
 import scala.util.Try
 
-import models.api.TSMSPMessage
+import models.api.{HandleStatus, TSMSPMessage, TSMSPReply}
 import models.fields.IDCard
-import models.{HandleStatus, TSMSPReply, Trace}
+import models.Trace
 import services.TraceService.addTrace
 
 case class UserAddTraceMessage(userToken: String, idCard: IDCard, trace: Trace) extends TSMSPMessage {

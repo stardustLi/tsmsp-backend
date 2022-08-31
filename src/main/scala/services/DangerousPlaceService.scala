@@ -5,7 +5,7 @@ import slick.jdbc.PostgresProfile.api._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.Try
 
-import models.CustomColumnTypes._
+import models.types.CustomColumnTypes._
 import models.enums.RiskLevel
 import models.{DangerousPlace, Trace}
 import tables.DangerousPlaceTableInstance
@@ -26,20 +26,14 @@ object DangerousPlaceService {
   def dangerousUpdate(userToken: String, place: Trace, level: RiskLevel, now: DateTime): Try[Int] = Try {
     await(
       (
-        UserService.checkPermission(userToken, now).map(
-          {
-            case None => throw exceptions.NoPermission()
-            case Some(permission) =>
-              if (!permission.setRiskAreas) throw exceptions.NoPermission()
-          }
-        ) >>
-          DangerousPlaceTableInstance.instance.insertOrUpdate(DangerousPlace(place, level))
+        UserService.checkPermission(userToken, now, _.setRiskAreas) >>
+        DangerousPlaceTableInstance.instance.insertOrUpdate(DangerousPlace(place, level))
       ).transactionally
     )
   }
 
   def DangerousPlaceQuery(level: RiskLevel): Try[List[Trace]] = Try {
-    import models.CustomColumnTypes._
+    import models.types.CustomColumnTypes._
     await(
       (
         DangerousPlaceTableInstance.filterByRiskLevel(level)

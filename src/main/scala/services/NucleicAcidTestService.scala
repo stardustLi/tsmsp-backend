@@ -15,7 +15,7 @@ object NucleicAcidTestService {
     await(
       UserService.checkUserHasAccessByTokenAndIDCard(userToken, idCard, now).flatMap(hasAccess => {
         if (!hasAccess) throw exceptions.NoAccessOfIdCard(idCard)
-        UserNucleicAcidTestTableInstance.instance += UserNucleicAcidTest(idCard, now.getMillis, result)
+        UserNucleicAcidTestTableInstance.instance += UserNucleicAcidTest(idCard.toLowerCase(), now.getMillis, result)
       }).transactionally
     )
   }

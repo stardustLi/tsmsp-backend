@@ -1,9 +1,8 @@
 package tables
 
 import slick.jdbc.PostgresProfile.api._
-import slick.lifted.{ProvenShape, Tag}
+import slick.lifted.Tag
 
-import scala.util.Try
 import globals.GlobalVariables.mainSchema
 import models.UserNucleicAcidTest
 import models.fields.IDCard
@@ -21,8 +20,8 @@ object UserNucleicAcidTestTableInstance {
   await(instance.schema.createIfNotExists)
 
   def filterByIDCard(idCard: IDCard): Query[UserNucleicAcidTestTable, UserNucleicAcidTest, Seq] =
-    instance.filter(user_nucleic_acid_test => user_nucleic_acid_test.idCard === idCard)
+    instance.filter(test => test.idCard === idCard.toLowerCase())
 
   def filterByResult(result: Boolean): Query[UserNucleicAcidTestTable, UserNucleicAcidTest,Seq] =
-    instance.filter(user_nucleic_acid_test => user_nucleic_acid_test.result === result)
+    instance.filter(test => test.result === result)
 }

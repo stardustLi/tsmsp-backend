@@ -1,7 +1,7 @@
 package process
 
 import models.api.TSMSPMessage
-import utils.IOUtils.{deserialize, fromObject, fromString}
+import utils.io.{deserialize, fromObject, fromString}
 import process.Server.{LOGGER => ServerLOGGER}
 import akka.actor.typed.ActorSystem
 import akka.http.scaladsl.model.headers.HttpOriginRange

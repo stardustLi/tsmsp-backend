@@ -1,6 +1,5 @@
 package tables
 
-import scala.util.Try
 import slick.jdbc.PostgresProfile.api._
 import slick.lifted.Tag
 
@@ -9,9 +8,8 @@ import models.enums.RiskLevel
 import models.{DangerousPlace, Trace}
 import utils.db.await
 
-
 class DangerousPlaceTable(tag: Tag) extends Table[DangerousPlace](tag, mainSchema, "dangerous_place") {
-  import models.CustomColumnTypes._
+  import models.types.CustomColumnTypes._
   def place = column[Trace]("place", O.PrimaryKey)
   def level = column[RiskLevel]("level")
   def *     = (place, level).mapTo[DangerousPlace]
@@ -22,12 +20,12 @@ object DangerousPlaceTableInstance {
   await(instance.schema.createIfNotExists)
 
   def filterByPlace(place: Trace): Query[DangerousPlaceTable, DangerousPlace, Seq] = {
-    import models.CustomColumnTypes._
+    import models.types.CustomColumnTypes._
     instance.filter(dangerous_place => dangerous_place.place === place)
   }
 
   def filterByRiskLevel(level: RiskLevel): Query[DangerousPlaceTable, DangerousPlace, Seq] = {
-    import models.CustomColumnTypes._
+    import models.types.CustomColumnTypes._
     instance.filter(dangerous_place => dangerous_place.level === level)
   }
 }

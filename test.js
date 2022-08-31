@@ -52,49 +52,78 @@ function assertError(result, value) {
 async function test() {
 	try {
 		const
-			idCard = '2021010818', hzkIdCard = '2021010698',
+			idCard = '00000000000000001x', hzkIdCard = '00000000000000028x',
 			place = { province: '卷猫', city: '猫猫', county: '真猫' };
-		let userToken = '', rootToken = '';
+		let userToken = '', rootToken = '', hzkToken = '';
 
 		{ // 登录/注册测试
 			// 注册以及用户已存在
 			await startModule('UserRegisterMessage', async type => {
-				const data = { type, userName: 'cat', password: 'lsz', realName: '猫猫', idCard };
-				let result = await POST(data);
-				if (result.status === 0) result = await POST(data);
-				assertError(result, '错误！用户名已经存在了');
+				const data = {
+					type,
+					userName: 'cat@',
+					password: 'lsz',
+					realName: '猫猫',
+					idCard: '2021010818'
+				};
 
-				await POST({ type, userName: 'wide', password: 'hzk', realName: '卷宽', idCard: hzkIdCard });
+				/********/ console.log('\x1b[35m普通用户 ...\x1b[0m'); /********/
+
+				assertError(await POST(data), '用户名 cat@ 不合法！');
+
+				data.userName = 'cat';
+				assertError(await POST(data), '密码太弱或包含非法字符！');
+
+				data.password = 'lszzsxn';
+				assertError(await POST(data), '身份证号 2021010818 不合法！');
+
+				data.idCard = idCard.toUpperCase();
+				let result1 = await POST(data);
+				if (result1.status === 0) result1 = await POST(data);
+				assertError(result1, '错误！用户名已经存在了');
+
+				data.userName = 'wide', data.password = 'hzkhzk', data.realName = '卷宽';
+				const result2 = await POST(data);
+				assert.equal(result2.status, -1);
+
+				data.idCard = hzkIdCard.toUpperCase();
+				await POST(data);
+
+				/********/ console.log('\x1b[35mroot 用户 ...\x1b[0m'); /********/
+
+				data.userName = 'root', data.password = '123456', data.realName = '管理员', data.idCard = idCard;
+				const result3 = await POST(data);
+				assert.equal(result3.status, -1);
+
+				data.idCard = '400000202101081832';
+				await POST(data);
 			});
 
 			// 登录
 			await startModule('UserLoginMessage', async type => {
-				const data = { type, userName: 'cat', password: 'lsz' };
-				const result = await POST(data);
-				assert.equal(result.status, 0);
-				userToken = result.message;
+				const data = { type, userName: 'cat', password: 'lszzsxn' };
+
+				/********/ console.log('\x1b[35m普通用户 ...\x1b[0m'); /********/
+
+				const result1 = await POST(data);
+				assert.equal(result1.status, 0);
+				userToken = result1.message;
 				assert.equal(typeof userToken, 'string');
-			});
 
-			// root 用户注册
-			console.log('\x1b[35mroot 用户测试 ...\x1b[0m');
-			await startModule('UserRegisterMessage', async type => {
-				const data = { type, userName: 'root', password: '123456', realName: '管理员', idCard };
-				const result = await POST(data);
-				assert.equal(result.status, -1);
+				data.userName = 'wide', data.password = 'hzkhzk';
+				const result2 = await POST(data);
+				assert.equal(result2.status, 0);
+				hzkToken = result2.message;
+				assert.equal(typeof hzkToken, 'string');
 
-				data.idCard = 'root';
-				await POST(data);
-			}, 0);
+				/********/ console.log('\x1b[35mroot 用户 ...\x1b[0m'); /********/
 
-			// root 用户登录
-			await startModule('UserLoginMessage', async type => {
-				const data = { type, userName: 'root', password: '123456' };
-				const result = await POST(data);
-				assert.equal(result.status, 0);
-				rootToken = result.message;
+				data.userName = 'root', data.password = '123456';
+				const result3 = await POST(data);
+				assert.equal(result3.status, 0);
+				rootToken = result3.message;
 				assert.equal(typeof rootToken, 'string');
-			}, 0);
+			});
 
 			// 用户信息查询
 			await startModule('UserGetProfileMessage', async type => {
@@ -102,7 +131,7 @@ async function test() {
 				const result1 = await POST(data);
 				assert.equal(result1.status, 0);
 				assert.equal(result1.message.userName, 'cat');
-				assert.equal(result1.message.password, 'lsz');
+				assert.equal(result1.message.password, 'lszzsxn');
 				assert.equal(result1.message.realName, '猫猫');
 				assert.equal(result1.message.idCard, idCard);
 
@@ -112,7 +141,7 @@ async function test() {
 				assert.equal(result2.message.userName, 'root');
 				assert.equal(result2.message.password, '123456');
 				assert.equal(result2.message.realName, '管理员');
-				assert.equal(result2.message.idCard, 'root');
+				assert.equal(result2.message.idCard, '400000202101081832');
 
 				data.userToken = '不存在的';
 				const result3 = await POST(data);
@@ -128,10 +157,10 @@ async function test() {
 
 				data.userToken = userToken;
 				data.idCard = 'hahaha';
-				assertError(await POST(data), '错误！不存在身份证号为 IDCard(hahaha) 的用户！');
+				assertError(await POST(data), '错误！无权限访问 (或不存在) 身份证号为 hahaha 的用户！');
 
 				data.idCard = hzkIdCard;
-				assertError(await POST(data), `错误！无权限访问身份证号为 IDCard(${hzkIdCard}) 的用户！`);
+				assertError(await POST(data), `错误！无权限访问 (或不存在) 身份证号为 ${hzkIdCard} 的用户！`);
 
 				data.idCard = idCard;
 				assertSuccess(await POST(data));
@@ -184,7 +213,7 @@ async function test() {
 				traces.splice(-2, 1);
 			});
 
-			console.log('\x1b[35m检查是否成功删除 ...\x1b[0m');
+			console.log('\x1b[35m检查是否成功删除 ...\x1b[0m\n');
 			await startModule('UserGetTraceMessage', async type => {
 				const data = { type, userToken, idCard, startTime: 0, endTime: 1e18 };
 				const result = await POST(data);
@@ -192,7 +221,7 @@ async function test() {
 				assert(Array.isArray(result.message) && result.message.length === traces.length);
 			}, 0);
 
-			console.log('\x1b[35m删除剩余全部数据 ...\x1b[0m');
+			console.log('\x1b[35m删除剩余全部数据 ...\x1b[0m\n');
 			await startModule('UserDeleteTraceMessage', async type => {
 				await Promise.all(
 					traces.map(async trace => {
@@ -207,7 +236,7 @@ async function test() {
 
 		// 上报密接
 		await startModule('UserAddTraceWithPeopleMessage', async type => {
-			const data = { type, userToken, idCard, personIdCard: 2021011832 };
+			const data = { type, userToken, idCard, personIdCard: '012345678901234560' };
 			assertSuccess(await POST(data));
 		});
 
@@ -233,7 +262,7 @@ async function test() {
 				});
 			}
 
-			console.log('\x1b[35m不存在以及不合法政策测试 ...\x1b[0m');
+			console.log('\x1b[35m不存在以及不合法政策测试 ...\x1b[0m\n');
 			await startModule('PolicyQueryMessage', async type => {
 				const data = { type, place: { province: '不存在的', city: '坏了', county: '没了' } };
 				assertSuccess(await POST(data), null);
@@ -247,7 +276,7 @@ async function test() {
 				}
 			}, 0);
 
-			console.log('\x1b[1;35m政策继承测试 ...\x1b[0m');
+			console.log('\x1b[1;35m政策继承测试 ...\x1b[0m\n');
 			await startModule('PolicyUpdateMessage', async type => {
 				const data = { type, userToken: rootToken, place: { province: '卷猫', city: '', county: '' }, content: '猫宽学！' };
 				assertSuccess(await POST(data));
@@ -296,7 +325,7 @@ async function test() {
 				});
 			}
 
-			console.log('\x1b[35m不存在以及不合法地区测试 ...\x1b[0m');
+			console.log('\x1b[35m不存在以及不合法地区测试 ...\x1b[0m\n');
 			await startModule('DangerousPlaceMessage', async type => {
 				const data = { type, place: { province: '不存在的', city: '坏了', county: '没了' } };
 				const result = await POST(data);
@@ -314,7 +343,7 @@ async function test() {
 
 		{ // 权限更改测试
 			const permission = { userName: 'cat', setRiskAreas: true };
-			await startModule('SetPermissionMessage', async type => {
+			await startModule('SetAdminPermissionMessage', async type => {
 				const data = { type, userToken, permission };
 				assertError(await POST(data), '错误！没有权限进行此操作');
 
@@ -375,7 +404,7 @@ async function test() {
 				assertError(await POST(data), '错误！没有权限进行此操作');
 
 				assertSuccess(await POST({
-					type: 'SetPermissionMessage',
+					type: 'SetAdminPermissionMessage',
 					userToken: rootToken,
 					permission: { userName: 'cat', viewAppeals: true }
 				}));
@@ -386,11 +415,11 @@ async function test() {
 				assert.equal(result1.message.reason, '我要抱猫猫！');
 				assert.equal(typeof result1.message.time, 'number');
 
-				data.idCard = +hzkIdCard + 1;
+				data.idCard = hzkIdCard;
 				assertSuccess(await POST(data), null);
 
 				assertSuccess(await POST({
-					type: 'SetPermissionMessage',
+					type: 'SetAdminPermissionMessage',
 					userToken: rootToken,
 					permission: { userName: 'cat' }
 				}));
@@ -426,6 +455,37 @@ async function test() {
 				result = await POST(data);
 				assert.equal(result.status, -1);
 				// assert(result.message.includes('duplicate'));
+			});
+		}
+
+		{ // 权限授予测试
+			// 权限授予
+			await startModule('UserGrantPermissionMessage', async type => {
+				const data = { type: 'UserAppealMessage', userToken, idCard: hzkIdCard, reason: '没有权限的猫猫~' };
+				assertError(await POST(data), `错误！无权限访问 (或不存在) 身份证号为 ${hzkIdCard} 的用户！`);
+
+				assertSuccess(await POST({ type, userToken: hzkToken, other: 'cat' }));
+
+				data.reason = '有权限的猫猫！';
+				assertSuccess(await POST(data), 1);
+
+				const result = await POST({ type: 'QueryAppealMessage', userToken: rootToken, idCard: hzkIdCard });
+
+				assert.equal(result.status, 0);
+				assert.equal(result.message.idCard, hzkIdCard);
+				assert.equal(result.message.reason, '有权限的猫猫！');
+				assert.equal(typeof result.message.time, 'number');
+
+				assertSuccess(await POST({ type: 'ResolveAppealMessage', userToken: rootToken, idCard: hzkIdCard }));
+			});
+
+			// 权限撤销
+			await startModule('UserRevokePermissionMessage', async type => {
+				const data = { type: 'UserAppealMessage', userToken, idCard: hzkIdCard, reason: '没有权限的猫猫~' };
+
+				assertSuccess(await POST({ type, userToken: hzkToken, other: 'cat' }));
+
+				assertError(await POST(data), `错误！无权限访问 (或不存在) 身份证号为 ${hzkIdCard} 的用户！`);
 			});
 		}
 	} catch (e) {

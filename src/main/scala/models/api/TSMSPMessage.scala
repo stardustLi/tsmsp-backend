@@ -7,7 +7,6 @@ import scala.util.{Failure, Success, Try}
 import models.api.appeal._
 import models.api.trace._
 import models.types.JacksonSerializable
-import models.{HandleStatus, TSMSPReply}
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes(
@@ -15,6 +14,8 @@ import models.{HandleStatus, TSMSPReply}
     new JsonSubTypes.Type(value = classOf[UserLoginMessage], name = "UserLoginMessage"),
     new JsonSubTypes.Type(value = classOf[UserRegisterMessage], name = "UserRegisterMessage"),
     new JsonSubTypes.Type(value = classOf[UserGetProfileMessage], name = "UserGetProfileMessage"),
+    new JsonSubTypes.Type(value = classOf[UserGrantPermissionMessage], name = "UserGrantPermissionMessage"),
+    new JsonSubTypes.Type(value = classOf[UserRevokePermissionMessage], name = "UserRevokePermissionMessage"),
     new JsonSubTypes.Type(value = classOf[UserAddTraceMessage], name = "UserAddTraceMessage"),
     new JsonSubTypes.Type(value = classOf[UserDeleteTraceMessage], name = "UserDeleteTraceMessage"),
     new JsonSubTypes.Type(value = classOf[UserGetTraceMessage], name = "UserGetTraceMessage"),
@@ -25,7 +26,7 @@ import models.{HandleStatus, TSMSPReply}
     new JsonSubTypes.Type(value = classOf[UserAddTraceWithPeopleMessage], name = "UserAddTraceWithPeopleMessage"),
     new JsonSubTypes.Type(value = classOf[SetDangerousPlaceMessage], name = "SetDangerousPlaceMessage"),
     new JsonSubTypes.Type(value = classOf[DangerousPlaceMessage], name = "DangerousPlaceMessage"),
-    new JsonSubTypes.Type(value = classOf[SetPermissionMessage], name = "SetPermissionMessage"),
+    new JsonSubTypes.Type(value = classOf[SetAdminPermissionMessage], name = "SetAdminPermissionMessage"),
     new JsonSubTypes.Type(value = classOf[QueryAppealMessage], name = "QueryAppealMessage"),
     new JsonSubTypes.Type(value = classOf[ResolveAppealMessage], name = "ResolveAppealMessage"),
     new JsonSubTypes.Type(value = classOf[JingReportMessage], name = "JingReportMessage"),

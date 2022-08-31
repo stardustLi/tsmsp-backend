@@ -15,7 +15,7 @@ object VaccineService {
     await(
       UserService.checkUserHasAccessByTokenAndIDCard(userToken, idCard, now).flatMap(hasAccess => {
         if (!hasAccess) throw exceptions.NoAccessOfIdCard(idCard)
-        UserVaccineTableInstance.instance += UserVaccine(idCard, manufacture, now.getMillis, vaccineType)
+        UserVaccineTableInstance.instance += UserVaccine(idCard.toLowerCase(), manufacture, now.getMillis, vaccineType)
       }).transactionally
     )
   }

@@ -1,11 +1,10 @@
 package tables
 
-import scala.util.Try
 import slick.jdbc.PostgresProfile.api._
 import slick.lifted.Tag
 
 import globals.GlobalVariables.mainSchema
-import models.{UserTrace, UserTraceWithPeople}
+import models.UserTraceWithPeople
 import models.fields.IDCard
 import utils.db.await
 
@@ -21,5 +20,5 @@ object UserTraceWithPeopleTableInstance {
   await(instance.schema.createIfNotExists)
 
   def filterByIDCard(idCard: IDCard): Query[UserTraceWithPeopleTable, UserTraceWithPeople, Seq] =
-    instance.filter(trace => trace.ThisPeople === idCard)
+    instance.filter(trace => trace.ThisPeople === idCard.toLowerCase())
 }

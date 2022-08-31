@@ -1,9 +1,8 @@
 package tables
 
 import slick.jdbc.PostgresProfile.api._
-import slick.lifted.{ProvenShape, Tag}
+import slick.lifted.Tag
 
-import scala.util.Try
 import globals.GlobalVariables.mainSchema
 import models.UserPermission
 import models.fields.UserName

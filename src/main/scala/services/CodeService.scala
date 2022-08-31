@@ -15,7 +15,7 @@ object CodeService {
     await(
       UserService.checkUserHasAccessByTokenAndIDCard(userToken, idCard, now).flatMap(hasAccess => {
         if (!hasAccess) throw exceptions.NoAccessOfIdCard(idCard)
-        UserAppealTableInstance.instance += Appeal(idCard, reason, now.getMillis)
+        UserAppealTableInstance.instance += Appeal(idCard.toLowerCase(), reason, now.getMillis)
       }).transactionally
     )
   }
@@ -24,7 +24,7 @@ object CodeService {
     await(
       UserService.checkUserHasAccessByTokenAndIDCard(userToken, idCard, now).flatMap(hasAccess => {
         if (!hasAccess) throw exceptions.NoAccessOfIdCard(idCard)
-        JingReportTableInstance.instance += JingReport(idCard, reason, now.getMillis)
+        JingReportTableInstance.instance += JingReport(idCard.toLowerCase(), reason, now.getMillis)
       }).transactionally
     )
   }
@@ -32,29 +32,17 @@ object CodeService {
   def queryAppeal(userToken: String, idCard: IDCard, now: DateTime): Try[Option[Appeal]] = Try {
     await(
       (
-        UserService.checkPermission(userToken, now).map(
-          {
-            case None => throw exceptions.NoPermission()
-            case Some(permission) =>
-              if (!permission.viewAppeals) throw exceptions.NoPermission()
-          }
-        ) >>
-          UserAppealTableInstance.filterByIdCard(idCard).result.headOption
-        ).transactionally
+        UserService.checkPermission(userToken, now, _.viewAppeals) >>
+        UserAppealTableInstance.filterByIdCard(idCard).result.headOption
+      ).transactionally
     )
   }
 
   def queryAppeals(userToken: String, now: DateTime): Try[List[Appeal]] = Try {
     await(
       (
-        UserService.checkPermission(userToken, now).map(
-          {
-            case None => throw exceptions.NoPermission()
-            case Some(permission) =>
-              if (!permission.viewAppeals) throw exceptions.NoPermission()
-          }
-        ) >>
-          UserAppealTableInstance.instance.result
+        UserService.checkPermission(userToken, now, _.viewAppeals) >>
+        UserAppealTableInstance.instance.result
       ).transactionally
     ).toList
   }
@@ -62,15 +50,9 @@ object CodeService {
   def resolveAppeal(userToken: String, idCard: IDCard, now: DateTime): Try[Int] = Try {
     await(
       (
-        UserService.checkPermission(userToken, now).map(
-          {
-            case None => throw exceptions.NoPermission()
-            case Some(permission) =>
-              if (!permission.viewAppeals) throw exceptions.NoPermission()
-          }
-        ) >>
-          UserAppealTableInstance.filterByIdCard(idCard).delete
-        ).transactionally
+        UserService.checkPermission(userToken, now, _.viewAppeals) >>
+        UserAppealTableInstance.filterByIdCard(idCard).delete
+      ).transactionally
     )
   }
 }

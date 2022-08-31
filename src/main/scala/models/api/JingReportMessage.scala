@@ -1,7 +1,6 @@
 package models.api
 
 import models.fields.IDCard
-import models.{HandleStatus, TSMSPReply}
 import org.joda.time.DateTime
 import services.CodeService.jingReport
 

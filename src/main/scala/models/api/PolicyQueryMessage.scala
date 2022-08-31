@@ -1,6 +1,6 @@
 package models.api
 
-import models.{HandleStatus, TSMSPReply, Trace}
+import models.Trace
 import org.joda.time.DateTime
 import services.PolicyService.policyQuery
 

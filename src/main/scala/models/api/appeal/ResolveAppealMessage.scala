@@ -3,9 +3,8 @@ package models.api.appeal
 import org.joda.time.DateTime
 import scala.util.Try
 
-import models.api.TSMSPMessage
+import models.api.{HandleStatus, TSMSPMessage, TSMSPReply}
 import models.fields.IDCard
-import models.{HandleStatus, TSMSPReply}
 import services.CodeService.resolveAppeal
 
 case class ResolveAppealMessage(userToken: String, idCard: IDCard) extends TSMSPMessage {

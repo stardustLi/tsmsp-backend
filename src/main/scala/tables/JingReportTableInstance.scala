@@ -19,5 +19,5 @@ object JingReportTableInstance {
   await(instance.schema.createIfNotExists)
 
   def filterByIdCard(idCard: IDCard): Query[JingReportTable, JingReport, Seq] =
-    instance.filter(Appeal => Appeal.idCard === idCard)
+    instance.filter(Appeal => Appeal.idCard === idCard.toLowerCase())
 }

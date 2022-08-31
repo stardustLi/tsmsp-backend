@@ -49,14 +49,8 @@ object PolicyService {
   def policyUpdate(userToken: String, place: Trace, content: String, now: DateTime): Try[Int] = Try {
     await(
       (
-        UserService.checkPermission(userToken, now).map(
-          {
-            case None => throw exceptions.NoPermission()
-            case Some(permission) =>
-              if (!permission.setPolicy) throw exceptions.NoPermission()
-          }
-        ) >>
-          PolicyTableInstance.instance.insertOrUpdate(Policy(place, content))
+        UserService.checkPermission(userToken, now, _.setPolicy) >>
+        PolicyTableInstance.instance.insertOrUpdate(Policy(place, content))
       ).transactionally
     )
   }

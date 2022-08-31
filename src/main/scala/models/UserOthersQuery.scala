@@ -4,5 +4,5 @@ import models.fields.{UserName, IDCard}
 
 case class UserOthersQuery (
   userName: UserName,
-  idcardOthers: IDCard
+  idCardOthers: IDCard
 )

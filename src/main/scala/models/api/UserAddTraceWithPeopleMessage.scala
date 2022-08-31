@@ -1,7 +1,7 @@
 package models.api
 
 import models.fields.IDCard
-import models.{HandleStatus, TSMSPReply, Trace}
+import models.Trace
 import org.joda.time.DateTime
 import services.TraceService.addTraceWithPeople
 

@@ -1,4 +1,4 @@
-package models
+package models.api
 
 object HandleStatus {
   val OK: Int = 0

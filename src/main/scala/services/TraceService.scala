@@ -15,7 +15,7 @@ object TraceService {
     await(
       UserService.checkUserHasAccessByTokenAndIDCard(userToken, idCard, now).flatMap(hasAccess => {
         if (!hasAccess) throw exceptions.NoAccessOfIdCard(idCard)
-        UserTraceTableInstance.instance += UserTrace(idCard, trace, now.getMillis)
+        UserTraceTableInstance.instance += UserTrace(idCard.toLowerCase(), trace, now.getMillis)
       }).transactionally
     )
   }
@@ -33,7 +33,7 @@ object TraceService {
   }
 
   def updateTrace(userToken: String, idCard: IDCard, time: Long, trace: Trace, now: DateTime): Try[Int] = Try {
-    import models.CustomColumnTypes._
+    import models.types.CustomColumnTypes._
     await(
       UserService.checkUserHasAccessByTokenAndIDCard(userToken, idCard, now).flatMap(hasAccess => {
         if (!hasAccess) throw exceptions.NoAccessOfIdCard(idCard)
@@ -60,10 +60,13 @@ object TraceService {
   }
 
   def addTraceWithPeople(userToken: String, idCard: IDCard, personIdCard: IDCard, now: DateTime): Try[Int] = Try {
+    if (!personIdCard.isValid()) throw exceptions.IDCardInvalid(personIdCard)
     await(
       UserService.checkUserHasAccessByTokenAndIDCard(userToken, idCard, now).flatMap(hasAccess => {
         if (!hasAccess) throw exceptions.NoAccessOfIdCard(idCard)
-        UserTraceWithPeopleTableInstance.instance += UserTraceWithPeople(idCard, personIdCard, now.getMillis)
+        UserTraceWithPeopleTableInstance.instance += UserTraceWithPeople(
+          idCard.toLowerCase(), personIdCard.toLowerCase(), now.getMillis
+        )
       }).transactionally
     )
   }
