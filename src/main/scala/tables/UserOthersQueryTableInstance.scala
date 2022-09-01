@@ -18,6 +18,9 @@ object UserOthersQueryTableInstance {
   val instance = TableQuery[UserOthersQueryTable]
   await(instance.schema.createIfNotExists)
 
+  def filterByIDCard(idCardOthers: IDCard): Query[UserOthersQueryTable, UserOthersQuery, Seq] =
+    instance.filter(user => user.idCardOthers === idCardOthers.toLowerCase())
+
   def filterByUserIDCard(userName: UserName, idCardOthers: IDCard): Query[UserOthersQueryTable, UserOthersQuery, Seq] =
     instance.filter(user => user.userName === userName && user.idCardOthers === idCardOthers.toLowerCase())
 }

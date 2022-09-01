@@ -49,7 +49,7 @@ object PolicyService {
   def policyUpdate(userToken: String, place: Trace, content: String, now: DateTime): Try[Int] = Try {
     await(
       (
-        UserService.checkPermission(userToken, now, _.setPolicy) >>
+        UserService.checkPermission(userToken, _.setPolicy, now) >>
         PolicyTableInstance.instance.insertOrUpdate(Policy(place, content))
       ).transactionally
     )

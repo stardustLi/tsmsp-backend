@@ -24,6 +24,7 @@ import models.types.JacksonSerializable
     new JsonSubTypes.Type(value = classOf[UserGetProfileMessage], name = "UserGetProfileMessage"),
     new JsonSubTypes.Type(value = classOf[UserGrantPermissionMessage], name = "UserGrantPermissionMessage"),
     new JsonSubTypes.Type(value = classOf[UserRevokePermissionMessage], name = "UserRevokePermissionMessage"),
+    new JsonSubTypes.Type(value = classOf[UserFetchAllGrantedUsersMessage], name = "UserFetchAllGrantedUsersMessage"),
     new JsonSubTypes.Type(value = classOf[UserAddTraceMessage], name = "UserAddTraceMessage"),
     new JsonSubTypes.Type(value = classOf[UserDeleteTraceMessage], name = "UserDeleteTraceMessage"),
     new JsonSubTypes.Type(value = classOf[UserGetTraceMessage], name = "UserGetTraceMessage"),

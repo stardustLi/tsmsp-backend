@@ -25,7 +25,7 @@ object DangerousPlaceService {
   def dangerousUpdate(userToken: String, place: Trace, level: RiskLevel, now: DateTime): Try[Int] = Try {
     await(
       (
-        UserService.checkPermission(userToken, now, _.setRiskAreas) >>
+        UserService.checkPermission(userToken, _.setRiskAreas, now) >>
         DangerousPlaceTableInstance.instance.insertOrUpdate(DangerousPlace(place, level))
       ).transactionally
     )

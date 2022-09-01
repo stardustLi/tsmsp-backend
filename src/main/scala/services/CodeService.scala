@@ -32,7 +32,7 @@ object CodeService {
   def queryAppeal(userToken: String, idCard: IDCard, now: DateTime): Try[Option[Appeal]] = Try {
     await(
       (
-        UserService.checkPermission(userToken, now, _.viewAppeals) >>
+        UserService.checkPermission(userToken, _.viewAppeals, now) >>
         UserAppealTableInstance.filterByIdCard(idCard).result.headOption
       ).transactionally
     )
@@ -41,7 +41,7 @@ object CodeService {
   def queryAppeals(userToken: String, now: DateTime): Try[List[Appeal]] = Try {
     await(
       (
-        UserService.checkPermission(userToken, now, _.viewAppeals) >>
+        UserService.checkPermission(userToken, _.viewAppeals, now) >>
         UserAppealTableInstance.instance.result
       ).transactionally
     ).toList
@@ -50,7 +50,7 @@ object CodeService {
   def resolveAppeal(userToken: String, idCard: IDCard, now: DateTime): Try[Int] = Try {
     await(
       (
-        UserService.checkPermission(userToken, now, _.viewAppeals) >>
+        UserService.checkPermission(userToken, _.viewAppeals, now) >>
         UserAppealTableInstance.filterByIdCard(idCard).delete
       ).transactionally
     )

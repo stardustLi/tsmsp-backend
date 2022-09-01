@@ -37,3 +37,11 @@ case class NoAccessOfIdCard(idCard: IDCard) extends Exception {
 case class NoPermission() extends Exception {
   override def getMessage: String = "错误！没有权限进行此操作"
 }
+
+case class AppointAlreadyExists(idCard: IDCard) extends Exception {
+  override def getMessage: String = s"错误！身份证号为 ${idCard.value} 的核酸预约已存在"
+}
+
+case class NoAppoint(idCard: IDCard) extends Exception {
+  override def getMessage: String = s"错误！身份证号为 ${idCard.value} 的用户未进行预约"
+}

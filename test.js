@@ -479,6 +479,17 @@ async function test() {
 				assertSuccess(await POST({ type: 'ResolveAppealMessage', userToken: rootToken, idCard: hzkIdCard }));
 			});
 
+			// 权限查看
+			await startModule('UserFetchAllGrantedUsersMessage', async type => {
+				const result = await POST({ type, userToken: hzkToken });
+				assert.equal(result.status, 0);
+				assert(
+					Array.isArray(result.message) &&
+					result.message.length === 1 &&
+					result.message[0] === 'cat'
+				);
+			});
+
 			// 权限撤销
 			await startModule('UserRevokePermissionMessage', async type => {
 				const data = { type: 'UserAppealMessage', userToken, idCard: hzkIdCard, reason: '没有权限的猫猫~' };
@@ -486,6 +497,13 @@ async function test() {
 				assertSuccess(await POST({ type, userToken: hzkToken, other: 'cat' }));
 
 				assertError(await POST(data), `错误！无权限访问 (或不存在) 身份证号为 ${hzkIdCard} 的用户！`);
+
+				const result = await POST({ type: 'UserFetchAllGrantedUsersMessage', userToken: hzkToken });
+				assert.equal(result.status, 0);
+				assert(
+					Array.isArray(result.message) &&
+					result.message.length === 0
+				);
 			});
 		}
 	} catch (e) {
