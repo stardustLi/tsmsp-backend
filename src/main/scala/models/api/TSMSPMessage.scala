@@ -6,6 +6,7 @@ import org.joda.time.DateTime
 import scala.util.{Failure, Success, Try}
 import models.api.appeal._
 import models.api.trace._
+import models.api.vaccine.{UserAddVaccineMessage, UserGetVaccineMessage}
 import models.types.JacksonSerializable
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
@@ -30,6 +31,8 @@ import models.types.JacksonSerializable
     new JsonSubTypes.Type(value = classOf[QueryAppealMessage], name = "QueryAppealMessage"),
     new JsonSubTypes.Type(value = classOf[ResolveAppealMessage], name = "ResolveAppealMessage"),
     new JsonSubTypes.Type(value = classOf[JingReportMessage], name = "JingReportMessage"),
+    new JsonSubTypes.Type(value = classOf[UserAddVaccineMessage], name = "UserAddVaccineMessage"),
+    new JsonSubTypes.Type(value = classOf[UserGetVaccineMessage], name = "UserGetVaccineMessage"),
   )
 )
 abstract class TSMSPMessage extends JacksonSerializable {
