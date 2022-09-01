@@ -51,6 +51,23 @@ object UserService {
     )
   }
 
+  def changePassword(token: String, newPassword: Password, now: DateTime): Try[String] = Try {
+    await(
+      findUserByToken(token, now).flatMap(
+        userName => {
+          if (!newPassword.isValid()) throw exceptions.PasswordInvalid()
+          (
+            UserTableInstance.filterByUserName(userName)
+              .map(user => user.password)
+              .update(newPassword)
+          ) >> (
+            checkToken(userName, now, forceUpdate = true)
+          )
+        }
+      ).transactionally
+    )
+  }
+
   def apiGetAdminPermission(token: String, now: DateTime): Try[Option[UserAdminPermission]] = Try {
     await(
       findUserByToken(token, now).flatMap(
@@ -188,14 +205,14 @@ object UserService {
    * @param userName 用户名
    * @return
    */
-  def checkToken(userName: UserName, now: DateTime): DBIO[String] = {
+  def checkToken(userName: UserName, now: DateTime, forceUpdate: Boolean = false): DBIO[String] = {
     val tokenQuery: Query[UserTokenTable, UserToken, Seq] = UserTokenTableInstance.filterByUserName(userName)
     tokenQuery.result.flatMap(
       user => {
         if (user.isEmpty) throw exceptions.UserNotExists()
         val entry: UserToken = user.head
 
-        if (entry.refreshTime >= now.minusHours(2).getMillis) {
+        if (!forceUpdate && entry.refreshTime >= now.minusHours(2).getMillis) {
           UserTokenTableInstance.filterByUserName(userName).map(
             user => user.refreshTime
           ).update(

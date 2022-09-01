@@ -158,6 +158,19 @@ async function test() {
 				const result3 = await POST(data);
 				assertError(result3, '错误！用户不存在或登录信息已过期！');
 			});
+			
+			// 修改密码
+			await startModule('UserChangePasswordMessage', async type => {
+				const result1 = await POST({ type, userToken, newPassword: 'AAAAAAAA'});
+				assert.equal(result1.status, 0);
+				const tempToken = result1.message;
+				assert.equal(typeof tempToken, 'string');
+
+				const result2 = await POST({ type, userToken: tempToken, newPassword: 'lszzsxn' });
+				assert.equal(result2.status, 0);
+				userToken = result2.message;
+				assert.equal(typeof userToken, 'string');
+			})
 		}
 
 		{ // 轨迹测试 (trace.common)
