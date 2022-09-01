@@ -5,5 +5,5 @@ import models.fields.IDCard
 case class UserNucleicAcidTest(
   idCard: IDCard,
   time: Long,
-  result: Boolean // 记阳性为True
+  result: Boolean // 记阳性为 True
 )

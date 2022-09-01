@@ -48,7 +48,7 @@ object NucleicAcidTestService {
   def addNucleicAcidTestPoint(userToken: String, place: DetailedTrace, now: DateTime): Try[Int] = Try {
     await(//增加核酸点位
       (
-        UserService.checkPermission(userToken, _.manageNucleicAcidTestPoints, now) >>
+        UserService.checkAdminPermission(userToken, _.manageNucleicAcidTestPoints, now) >>
         (NucleicAcidTestPointTableInstance.instance += NucleicAcidTestPoint(place, 0))
       ).transactionally
     )

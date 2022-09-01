@@ -19,26 +19,42 @@ import models.types.JacksonSerializable
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes(
   Array(
+    // user.common
     new JsonSubTypes.Type(value = classOf[UserLoginMessage], name = "UserLoginMessage"),
     new JsonSubTypes.Type(value = classOf[UserRegisterMessage], name = "UserRegisterMessage"),
     new JsonSubTypes.Type(value = classOf[UserGetProfileMessage], name = "UserGetProfileMessage"),
+    new JsonSubTypes.Type(value = classOf[UserChangePasswordMessage], name = "UserChangePasswordMessage"),
+    // user.admin
+    new JsonSubTypes.Type(value = classOf[GetAdminPermissionMessage], name = "GetAdminPermissionMessage"),
+    new JsonSubTypes.Type(value = classOf[SetAdminPermissionMessage], name = "SetAdminPermissionMessage"),
+    // user.permission
+    new JsonSubTypes.Type(value = classOf[UserFetchAllGrantedUsersMessage], name = "UserFetchAllGrantedUsersMessage"),
     new JsonSubTypes.Type(value = classOf[UserGrantPermissionMessage], name = "UserGrantPermissionMessage"),
     new JsonSubTypes.Type(value = classOf[UserRevokePermissionMessage], name = "UserRevokePermissionMessage"),
-    new JsonSubTypes.Type(value = classOf[UserFetchAllGrantedUsersMessage], name = "UserFetchAllGrantedUsersMessage"),
+    // trace.common
     new JsonSubTypes.Type(value = classOf[UserAddTraceMessage], name = "UserAddTraceMessage"),
     new JsonSubTypes.Type(value = classOf[UserDeleteTraceMessage], name = "UserDeleteTraceMessage"),
-    new JsonSubTypes.Type(value = classOf[UserGetTraceMessage], name = "UserGetTraceMessage"),
     new JsonSubTypes.Type(value = classOf[UserUpdateTraceMessage], name = "UserUpdateTraceMessage"),
+    new JsonSubTypes.Type(value = classOf[UserGetTraceMessage], name = "UserGetTraceMessage"),
+    // trace.withPeople
+    new JsonSubTypes.Type(value = classOf[UserAddTraceWithPeopleMessage], name = "UserAddTraceWithPeopleMessage"),
+    new JsonSubTypes.Type(value = classOf[UserDeleteTraceWithPeopleMessage], name = "UserDeleteTraceWithPeopleMessage"),
+    new JsonSubTypes.Type(value = classOf[UserUpdateTraceWithPeopleMessage], name = "UserUpdateTraceWithPeopleMessage"),
+    new JsonSubTypes.Type(value = classOf[UserGetTraceWithPeopleMessage], name = "UserGetTraceWithPeopleMessage"),
+    new JsonSubTypes.Type(value = classOf[UserGetTraceWithPeopleWithIDCardMessage], name = "UserGetTraceWithPeopleWithIDCardMessage"),
+    // policy
     new JsonSubTypes.Type(value = classOf[PolicyQueryMessage], name = "PolicyQueryMessage"),
     new JsonSubTypes.Type(value = classOf[PolicyUpdateMessage], name = "PolicyUpdateMessage"),
-    new JsonSubTypes.Type(value = classOf[UserAppealMessage], name = "UserAppealMessage"),
-    new JsonSubTypes.Type(value = classOf[UserAddTraceWithPeopleMessage], name = "UserAddTraceWithPeopleMessage"),
-    new JsonSubTypes.Type(value = classOf[SetDangerousPlaceMessage], name = "SetDangerousPlaceMessage"),
-    new JsonSubTypes.Type(value = classOf[DangerousPlaceMessage], name = "DangerousPlaceMessage"),
-    new JsonSubTypes.Type(value = classOf[SetAdminPermissionMessage], name = "SetAdminPermissionMessage"),
+    // code
+    new JsonSubTypes.Type(value = classOf[JingReportMessage], name = "JingReportMessage"),
+    // code.appeal
     new JsonSubTypes.Type(value = classOf[QueryAppealMessage], name = "QueryAppealMessage"),
     new JsonSubTypes.Type(value = classOf[ResolveAppealMessage], name = "ResolveAppealMessage"),
-    new JsonSubTypes.Type(value = classOf[JingReportMessage], name = "JingReportMessage"),
+    new JsonSubTypes.Type(value = classOf[UserAppealMessage], name = "UserAppealMessage"),
+    // dangerousPlace
+    new JsonSubTypes.Type(value = classOf[SetDangerousPlaceMessage], name = "SetDangerousPlaceMessage"),
+    new JsonSubTypes.Type(value = classOf[DangerousPlaceMessage], name = "DangerousPlaceMessage"),
+    // vaccine
     new JsonSubTypes.Type(value = classOf[UserAddVaccineMessage], name = "UserAddVaccineMessage"),
     new JsonSubTypes.Type(value = classOf[UserGetVaccineMessage], name = "UserGetVaccineMessage"),
   )

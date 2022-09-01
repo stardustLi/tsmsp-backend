@@ -51,40 +51,60 @@ object UserService {
     )
   }
 
-  def apiSetPermission(token: String, permission: UserAdminPermission, now: DateTime): Try[Int] = Try {
+  def changePassword(token: String, newPassword: Password, now: DateTime): Try[String] = Try {
+    await(
+      findUserByToken(token, now).flatMap(
+        userName => {
+          if (!newPassword.isValid()) throw exceptions.PasswordInvalid()
+          (
+            UserTableInstance.filterByUserName(userName)
+              .map(user => user.password)
+              .update(newPassword)
+          ) >> (
+            checkToken(userName, now, forceUpdate = true)
+          )
+        }
+      ).transactionally
+    )
+  }
+
+  def apiGetAdminPermission(token: String, now: DateTime): Try[Option[UserAdminPermission]] = Try {
+    await(
+      findUserByToken(token, now).flatMap(
+        userName =>
+          UserAdminPermissionTableInstance.filterByUserName(userName)
+            .result
+            .headOption
+      ).transactionally
+    )
+  }
+
+  def apiSetAdminPermission(token: String, permission: UserAdminPermission, now: DateTime): Try[Int] = Try {
     await(
       (
-        checkPermission(token, _.admin, now) >>
+        checkAdminPermission(token, _.admin, now) >>
         UserAdminPermissionTableInstance.instance.insertOrUpdate(permission)
       ).transactionally
     )
   }
 
-  def getProfile(token: String, now: DateTime): Try[User] = Try {
+  def apiGetProfile(token: String, now: DateTime): Try[User] = Try {
     await(
-      findUserByToken(token, now).flatMap(
-        userName => {
-          UserTableInstance.filterByUserName(userName)
-            .result
-            .head
-        }
-      ).transactionally
+      findUserByToken(token, now).flatMap(getProfile).transactionally
     )
   }
 
   def grantPermission(token: String, trusted: UserName, now: DateTime): Try[Int] = Try {
     await(
       findUserByToken(token, now).flatMap(
-        userName => {
+        userName =>
           UserTableInstance.filterByUserName(userName)
             .map(user => user.idCard)
             .result
             .head
-        }
       ).flatMap(
-        idCard => {
+        idCard =>
           UserOthersQueryTableInstance.instance += UserOthersQuery(trusted, idCard.toLowerCase())
-        }
       ).transactionally
     )
   }
@@ -92,16 +112,14 @@ object UserService {
   def revokePermission(token: String, trusted: UserName, now: DateTime): Try[Int] = Try {
     await(
       findUserByToken(token, now).flatMap(
-        userName => {
+        userName =>
           UserTableInstance.filterByUserName(userName)
             .map(user => user.idCard)
             .result
             .head
-        }
       ).flatMap(
-        idCard => {
+        idCard =>
           UserOthersQueryTableInstance.filterByUserIDCard(trusted, idCard).delete
-        }
       ).transactionally
     )
   }
@@ -109,12 +127,11 @@ object UserService {
   def fetchAllGrantedUsers(token: String, now: DateTime): Try[List[String]] = Try {
     await (
       findUserByToken(token, now).flatMap(
-        userName => {
+        userName =>
           UserTableInstance.filterByUserName(userName)
             .map(user => user.idCard)
             .result
             .head
-        }
       ).flatMap(
         idCard => {
           UserOthersQueryTableInstance
@@ -158,14 +175,23 @@ object UserService {
       ).map(x => x._1 || x._2)
 
   /**
-   * 检查用户是否拥有某种权限
+   * 根据用户名获取用户信息
+   * @param userName 用户名
+   * @return
+   */
+  def getProfile(userName: UserName): DBIO[User] =
+    UserTableInstance.filterByUserName(userName).result.head
+
+  /**
+   * 检查用户是否拥有某种管理权限
    * @param token 用户 token
    * @param predicate 根据 UserAdminPermission 返回是否有权限的函数的谓词
    * @return
    */
-  def checkPermission(token: String, predicate: UserAdminPermission => Boolean, now: DateTime): DBIO[Unit] =
+  def checkAdminPermission(token: String, predicate: UserAdminPermission => Boolean, now: DateTime): DBIO[Unit] =
     findUserByToken(token, now).flatMap(
-      userName => UserAdminPermissionTableInstance.filterByUserName(userName).result.headOption
+      userName =>
+        UserAdminPermissionTableInstance.filterByUserName(userName).result.headOption
     ).map(
       {
         case None => throw exceptions.NoPermission()
@@ -179,14 +205,14 @@ object UserService {
    * @param userName 用户名
    * @return
    */
-  def checkToken(userName: UserName, now: DateTime): DBIO[String] = {
+  def checkToken(userName: UserName, now: DateTime, forceUpdate: Boolean = false): DBIO[String] = {
     val tokenQuery: Query[UserTokenTable, UserToken, Seq] = UserTokenTableInstance.filterByUserName(userName)
     tokenQuery.result.flatMap(
       user => {
         if (user.isEmpty) throw exceptions.UserNotExists()
         val entry: UserToken = user.head
 
-        if (entry.refreshTime >= now.minusHours(2).getMillis) {
+        if (!forceUpdate && entry.refreshTime >= now.minusHours(2).getMillis) {
           UserTokenTableInstance.filterByUserName(userName).map(
             user => user.refreshTime
           ).update(

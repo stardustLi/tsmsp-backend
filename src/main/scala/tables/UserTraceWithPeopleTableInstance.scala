@@ -2,17 +2,17 @@ package tables
 
 import slick.jdbc.PostgresProfile.api._
 import slick.lifted.Tag
-
 import globals.GlobalVariables.mainSchema
 import models.UserTraceWithPeople
-import models.fields.IDCard
+import models.fields.{IDCard, UserName}
 import utils.db.await
 
 class UserTraceWithPeopleTable(tag: Tag) extends Table[UserTraceWithPeople](tag, mainSchema, "user_trace_with_people") {
-  def ThisPeople              = column[IDCard]("this_people")
-  def PeopleMetWithThisPeople = column[IDCard]("people_met")
-  def time                    = column[Long]("time")
-  def *                       = (ThisPeople, PeopleMetWithThisPeople, time).mapTo[UserTraceWithPeople]
+  def ThisPeople = column[IDCard]("this_people")
+  def CCUserName = column[UserName]("cc_user_name")
+  def CCIDCard   = column[IDCard]("cc_id_card")
+  def time       = column[Long]("time")
+  def *          = (ThisPeople, CCUserName, CCIDCard, time).mapTo[UserTraceWithPeople]
 }
 
 object UserTraceWithPeopleTableInstance {
