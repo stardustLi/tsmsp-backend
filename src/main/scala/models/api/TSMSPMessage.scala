@@ -47,6 +47,7 @@ import models.types.JacksonSerializable
     new JsonSubTypes.Type(value = classOf[PolicyUpdateMessage], name = "PolicyUpdateMessage"),
     // code
     new JsonSubTypes.Type(value = classOf[JingReportMessage], name = "JingReportMessage"),
+    new JsonSubTypes.Type(value = classOf[UserGetColorMessage], name = "UserGetColorMessage"),
     // code.appeal
     new JsonSubTypes.Type(value = classOf[QueryAppealMessage], name = "QueryAppealMessage"),
     new JsonSubTypes.Type(value = classOf[ResolveAppealMessage], name = "ResolveAppealMessage"),

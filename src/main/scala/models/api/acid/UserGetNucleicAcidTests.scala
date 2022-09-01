@@ -4,7 +4,7 @@ import models.api.{HandleStatus, TSMSPMessage, TSMSPReply}
 import models.fields.IDCard
 import org.joda.time.DateTime
 import services.NucleicAcidTestService.getNucleicAcidTests
-import services.TraceService.getTraces
+import services.TraceService.apiGetTraces
 import services.VaccineService.getVaccines
 
 import scala.util.Try

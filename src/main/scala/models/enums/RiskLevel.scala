@@ -9,12 +9,21 @@ import slick.lifted.MappedTo
 
 @JsonSerialize(using = classOf[RiskLevelSerializer])
 @JsonDeserialize(using = classOf[RiskLevelSerializerDeserializer])
-sealed abstract class RiskLevel(val value: Int) extends MappedTo[Int]
-case object LOW extends RiskLevel(0)
-case object MEDIUM extends RiskLevel(1)
-case object HIGH extends RiskLevel(2)
+sealed abstract class RiskLevel(val value: Int) extends MappedTo[Int] {
+  def color: CodeColor
+}
 
 object RiskLevel {
+  case object LOW extends RiskLevel(0) {
+    def color: CodeColor = CodeColor.GREEN
+  }
+  case object MEDIUM extends RiskLevel(1) {
+    def color: CodeColor = CodeColor.YELLOW
+  }
+  case object HIGH extends RiskLevel(2) {
+    def color: CodeColor = CodeColor.RED
+  }
+
   def objectList: List[RiskLevel] = List(LOW, MEDIUM, HIGH)
   def getType(value: Int): RiskLevel = objectList.filter(level => level.value == value).head
 }

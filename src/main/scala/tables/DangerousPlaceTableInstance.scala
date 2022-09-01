@@ -21,11 +21,11 @@ object DangerousPlaceTableInstance {
 
   def filterByPlace(place: Trace): Query[DangerousPlaceTable, DangerousPlace, Seq] = {
     import models.types.CustomColumnTypes._
-    instance.filter(dangerous_place => dangerous_place.place === place)
+    instance.filter(dangerousPlace => dangerousPlace.place === place)
   }
 
   def filterByRiskLevel(level: RiskLevel): Query[DangerousPlaceTable, DangerousPlace, Seq] = {
     import models.types.CustomColumnTypes._
-    instance.filter(dangerous_place => dangerous_place.level === level)
+    instance.filter(dangerousPlace => dangerousPlace.level === level)
   }
 }

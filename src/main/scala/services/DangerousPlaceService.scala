@@ -2,15 +2,17 @@ package services
 
 import org.joda.time.DateTime
 import slick.jdbc.PostgresProfile.api._
-import scala.util.Try
 
+import scala.util.Try
 import models.types.CustomColumnTypes._
 import models.enums.RiskLevel
 import models.{DangerousPlace, Trace}
 import tables.DangerousPlaceTableInstance
-import utils.db.await
+import utils.db.{await, db}
 
+// TODO: merge to CodeService
 object DangerousPlaceService {
+  /******** 对外开放 API: 带 Try，带 await(*.transactionally) ********/
   def dangerousQuery(place: Trace): Try[RiskLevel] = Try {
     await(
       (
@@ -31,7 +33,12 @@ object DangerousPlaceService {
     )
   }
 
-  def DangerousPlaceQuery(level: RiskLevel): Try[List[Trace]] = Try {
+  /**
+   * 查询风险等级为 level 的地区列表
+   * @param level 风险等级
+   * @return
+   */
+  def dangerousPlaceQuery(level: RiskLevel): Try[List[Trace]] = Try {
     import models.types.CustomColumnTypes._
     await(
       (
@@ -40,5 +47,19 @@ object DangerousPlaceService {
           .result
       ).transactionally
     ).toList
-  } //用于查询当前中高风险地区
+  }
+
+  /******** 内部 API ********/
+  /**
+   * 获取 places 中风险度最高地区的风险度
+   * @param places 地区列表
+   * @return
+   */
+  def getMostRiskLevel(places: List[Trace]): DBIO[Option[RiskLevel]] = {
+    DangerousPlaceTableInstance.instance.filter(
+      dangerousPlace => dangerousPlace.place.inSet(places)
+    ).map(
+      dangerousPlace => dangerousPlace.level
+    ).max.result
+  }
 }
