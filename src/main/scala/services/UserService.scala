@@ -51,7 +51,18 @@ object UserService {
     )
   }
 
-  def apiSetPermission(token: String, permission: UserAdminPermission, now: DateTime): Try[Int] = Try {
+  def apiGetAdminPermission(token: String, now: DateTime): Try[Option[UserAdminPermission]] = Try {
+    await(
+      findUserByToken(token, now).flatMap(
+        userName =>
+          UserAdminPermissionTableInstance.filterByUserName(userName)
+            .result
+            .headOption
+      ).transactionally
+    )
+  }
+
+  def apiSetAdminPermission(token: String, permission: UserAdminPermission, now: DateTime): Try[Int] = Try {
     await(
       (
         checkPermission(token, _.admin, now) >>
@@ -63,11 +74,10 @@ object UserService {
   def getProfile(token: String, now: DateTime): Try[User] = Try {
     await(
       findUserByToken(token, now).flatMap(
-        userName => {
+        userName =>
           UserTableInstance.filterByUserName(userName)
             .result
             .head
-        }
       ).transactionally
     )
   }
@@ -75,16 +85,14 @@ object UserService {
   def grantPermission(token: String, trusted: UserName, now: DateTime): Try[Int] = Try {
     await(
       findUserByToken(token, now).flatMap(
-        userName => {
+        userName =>
           UserTableInstance.filterByUserName(userName)
             .map(user => user.idCard)
             .result
             .head
-        }
       ).flatMap(
-        idCard => {
+        idCard =>
           UserOthersQueryTableInstance.instance += UserOthersQuery(trusted, idCard.toLowerCase())
-        }
       ).transactionally
     )
   }
@@ -92,16 +100,14 @@ object UserService {
   def revokePermission(token: String, trusted: UserName, now: DateTime): Try[Int] = Try {
     await(
       findUserByToken(token, now).flatMap(
-        userName => {
+        userName =>
           UserTableInstance.filterByUserName(userName)
             .map(user => user.idCard)
             .result
             .head
-        }
       ).flatMap(
-        idCard => {
+        idCard =>
           UserOthersQueryTableInstance.filterByUserIDCard(trusted, idCard).delete
-        }
       ).transactionally
     )
   }
@@ -109,12 +115,11 @@ object UserService {
   def fetchAllGrantedUsers(token: String, now: DateTime): Try[List[String]] = Try {
     await (
       findUserByToken(token, now).flatMap(
-        userName => {
+        userName =>
           UserTableInstance.filterByUserName(userName)
             .map(user => user.idCard)
             .result
             .head
-        }
       ).flatMap(
         idCard => {
           UserOthersQueryTableInstance
@@ -165,7 +170,8 @@ object UserService {
    */
   def checkPermission(token: String, predicate: UserAdminPermission => Boolean, now: DateTime): DBIO[Unit] =
     findUserByToken(token, now).flatMap(
-      userName => UserAdminPermissionTableInstance.filterByUserName(userName).result.headOption
+      userName =>
+        UserAdminPermissionTableInstance.filterByUserName(userName).result.headOption
     ).map(
       {
         case None => throw exceptions.NoPermission()

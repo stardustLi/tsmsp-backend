@@ -56,7 +56,7 @@ async function test() {
 			place = { province: '卷猫', city: '猫猫', county: '真猫' };
 		let userToken = '', rootToken = '', hzkToken = '';
 
-		{ // 登录/注册测试
+		{ // 登录/注册测试 (user.common)
 			// 注册以及用户已存在
 			await startModule('UserRegisterMessage', async type => {
 				const data = {
@@ -149,7 +149,7 @@ async function test() {
 			});
 		}
 
-		{ // 轨迹测试
+		{ // 轨迹测试 (trace.common)
 			// 增加轨迹
 			await startModule('UserAddTraceMessage', async type => {
 				const data = { type, userToken: '无效 token', idCard, trace: place };
@@ -234,13 +234,25 @@ async function test() {
 			}, 0);
 		}
 
-		// 上报密接
-		await startModule('UserAddTraceWithPeopleMessage', async type => {
-			const data = { type, userToken, idCard, personIdCard: '012345678901234560' };
-			assertSuccess(await POST(data));
-		});
+		{ // 贴贴轨迹测试 (trace.withPeople)
+			// 上报密接
+			await startModule('UserAddTraceWithPeopleMessage', async type => {
+				const data = { type, userToken, idCard, personIdCard: '012345678901234560' };
+				assertSuccess(await POST(data));
+			});
 
-		{ // 政策测试
+			// 获取轨迹
+			let traces = [];
+			await startModule('UserGetTraceWithPeopleMessage', async type => {
+				const data = { type, userToken, idCard, startTime: 0, endTime: 1e18 };
+				const result = await POST(data);
+				assert.equal(result.status, 0);
+				traces = result.message;
+				assert(Array.isArray(traces));
+			});
+		}
+
+		{ // 政策测试 (policy)
 			// 政策修改和查询
 			const policies = ['卷宽卷宽喵希喵希！', '猫猫和真猫贴贴！'];
 
@@ -307,7 +319,7 @@ async function test() {
 			}, 0);
 		}
 
-		{ // 风险区测试
+		{ // 风险区测试 (dangerousPlace)
 			// 风险区修改和查询
 			for (let t = 0; t < 3; ++t) {
 				console.log(`\x1b[35m风险区修改第 \x1b[32m${t + 1}/3\x1b[35m 轮 ...\x1b[0m`);
@@ -341,14 +353,20 @@ async function test() {
 			}, 0);
 		}
 
-		{ // 权限更改测试
+		{ // 管理权限更改测试 (user.admin)
 			const permission = { userName: 'cat', setRiskAreas: true };
-			await startModule('SetAdminPermissionMessage', async type => {
-				const data = { type, userToken, permission };
-				assertError(await POST(data), '错误！没有权限进行此操作');
+			await startModule('GetAdminPermissionMessage / SetAdminPermissionMessage', async () => {
+				const
+					dataGet = { type: 'GetAdminPermissionMessage', userToken },
+					dataSet = { type: 'SetAdminPermissionMessage', userToken, permission };
+				assertError(await POST(dataSet), '错误！没有权限进行此操作');
 
-				data.userToken = rootToken;
-				assertSuccess(await POST(data));
+				dataSet.userToken = rootToken;
+				assertSuccess(await POST(dataSet));
+
+				const result1 = await POST(dataGet);
+				assert.equal(result1.status, 0);
+				assert(Object.entries(result1.message).every(([key, value]) => 'setRiskAreas' === key === value || key === 'userName'));
 
 				{
 					const data1 = { type: 'SetDangerousPlaceMessage', userToken, place, level: 2 };
@@ -361,8 +379,12 @@ async function test() {
 					assertError(await POST(data3), '错误！没有权限进行此操作');
 				}
 
-				data.permission = { userName: 'cat', setPolicy: true };
-				assertSuccess(await POST(data));
+				dataSet.permission = { userName: 'cat', setPolicy: true };
+				assertSuccess(await POST(dataSet));
+
+				const result2 = await POST(dataGet);
+				assert.equal(result2.status, 0);
+				assert(Object.entries(result2.message).every(([key, value]) => 'setPolicy' === key === value || key === 'userName'));
 
 				{
 					const data1 = { type: 'PolicyUpdateMessage', userToken, place, content: '卷宽太坏了' };
@@ -375,12 +397,16 @@ async function test() {
 					assertError(await POST(data3), '错误！没有权限进行此操作');
 				}
 
-				data.permission = { userName: 'cat' };
-				assertSuccess(await POST(data));
+				dataSet.permission = { userName: 'cat' };
+				assertSuccess(await POST(dataSet));
+
+				const result3 = await POST(dataGet);
+				assert.equal(result3.status, 0);
+				assert(Object.entries(result3.message).every(([key, value]) => value === false || key === 'userName'));
 			});
 		}
 
-		{ // 申诉测试
+		{ // 申诉测试 (code.appeal)
 			// 添加状态申诉
 			await startModule('UserAppealMessage', async type => {
 				const data = { type, userToken, idCard, reason: '我要抱猫猫！' };
@@ -439,7 +465,7 @@ async function test() {
 			});
 		}
 
-		{ // 进京报备
+		{ // 进京报备 (code.`JingReportMessage`)
 			// 添加进京报备
 			await startModule('JingReportMessage', async type => {
 				const data = { type, userToken, idCard, reason: '猫猫抱起来舒服！' };
@@ -458,7 +484,7 @@ async function test() {
 			});
 		}
 
-		{ // 权限授予测试
+		{ // 权限授予测试 (user.permission)
 			// 权限授予
 			await startModule('UserGrantPermissionMessage', async type => {
 				const data = { type: 'UserAppealMessage', userToken, idCard: hzkIdCard, reason: '没有权限的猫猫~' };

@@ -70,4 +70,17 @@ object TraceService {
       }).transactionally
     )
   }
+
+  def getTracesWithPeople(userToken: String, idCard: IDCard, startTime: Long, endTime: Long, now: DateTime): Try[List[UserTraceWithPeople]] = Try {
+    await(
+      UserService.checkUserHasAccessByTokenAndIDCard(userToken, idCard, now).flatMap(hasAccess => {
+        if (!hasAccess) throw exceptions.NoAccessOfIdCard(idCard)
+        UserTraceWithPeopleTableInstance
+          .filterByIDCard(idCard)
+          .filter(trace => trace.time.between(startTime, endTime))
+          .sortBy(trace => trace.time)
+          .result
+      }).transactionally
+    ).toList
+  }
 }
