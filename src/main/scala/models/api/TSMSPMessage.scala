@@ -4,9 +4,16 @@ import com.fasterxml.jackson.annotation.{JsonSubTypes, JsonTypeInfo}
 import org.joda.time.DateTime
 
 import scala.util.{Failure, Success, Try}
-import models.api.appeal._
-import models.api.trace._
-import models.api.vaccine.{UserAddVaccineMessage, UserGetVaccineMessage}
+import models.api.code._
+import models.api.code.appeal._
+import models.api.dangerousPlace._
+import models.api.policy._
+import models.api.trace.withPeople._
+import models.api.trace.common._
+import models.api.user.admin._
+import models.api.user.common._
+import models.api.user.permission._
+import models.api.vaccine._
 import models.types.JacksonSerializable
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")

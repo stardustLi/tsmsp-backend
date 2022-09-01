@@ -1,4 +1,4 @@
-package models.api.appeal
+package models.api.code.appeal
 
 import org.joda.time.DateTime
 import scala.util.Try

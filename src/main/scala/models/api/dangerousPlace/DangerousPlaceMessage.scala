@@ -1,6 +1,7 @@
-package models.api
+package models.api.dangerousPlace
 
 import models.Trace
+import models.api.{HandleStatus, TSMSPMessage, TSMSPReply}
 import org.joda.time.DateTime
 import services.DangerousPlaceService.dangerousQuery
 

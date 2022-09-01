@@ -1,8 +1,9 @@
-package models.api
+package models.api.dangerousPlace
 
 import com.typesafe.scalalogging.Logger
-import models.enums.RiskLevel
 import models.Trace
+import models.api.{HandleStatus, TSMSPMessage, TSMSPReply}
+import models.enums.RiskLevel
 import org.joda.time.DateTime
 import services.DangerousPlaceService.dangerousUpdate
 

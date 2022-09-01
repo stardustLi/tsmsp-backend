@@ -1,5 +1,6 @@
-package models.api
+package models.api.user.permission
 
+import models.api.{HandleStatus, TSMSPMessage, TSMSPReply}
 import models.fields.UserName
 import org.joda.time.DateTime
 import services.UserService.revokePermission

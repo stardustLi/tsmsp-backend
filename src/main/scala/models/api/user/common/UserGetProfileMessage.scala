@@ -1,5 +1,6 @@
-package models.api
+package models.api.user.common
 
+import models.api.{HandleStatus, TSMSPMessage, TSMSPReply}
 import org.joda.time.DateTime
 import services.UserService.getProfile
 

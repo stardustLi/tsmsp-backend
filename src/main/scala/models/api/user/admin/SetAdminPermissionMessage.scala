@@ -1,6 +1,7 @@
-package models.api
+package models.api.user.admin
 
-import models.{Trace, UserPermission}
+import models.UserPermission
+import models.api.{HandleStatus, TSMSPMessage, TSMSPReply}
 import org.joda.time.DateTime
 import services.UserService.apiSetPermission
 
