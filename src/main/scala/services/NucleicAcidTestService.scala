@@ -1,10 +1,10 @@
 package services
 
-import models.UserNucleicAcidTest
+import models.{UserNucleicAcidTest, NucleicAcidTestPoint, NucleicAcidTestAppoint, DetailedTrace}
 import models.fields.IDCard
 import org.joda.time.DateTime
 import slick.jdbc.PostgresProfile.api._
-import tables.{UserNucleicAcidTestTableInstance, NucleicAcidTestPointTableInstance}
+import tables.{UserNucleicAcidTestTableInstance, NucleicAcidTestPointTableInstance, NucleicAcidTestAppointTableInstance}
 import utils.db.await
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -38,5 +38,58 @@ object NucleicAcidTestService {
         .result
         .transactionally
     ).toList
+  }
+
+  def addNucleicAcidTestPoint(place: DetailedTrace): Try[Int] = Try {
+    await(
+      NucleicAcidTestPointTableInstance.instance += NucleicAcidTestPoint(place, 0)
+    )
+  } //应需要权限认证，暂未实现
+
+  def queryWaitingPerson(place: DetailedTrace): Try[Int] = Try {
+    await(
+      NucleicAcidTestPointTableInstance
+        .filterByPlace(place)
+        .map(nucleic_acid_test_point => nucleic_acid_test_point.waitingPerson)
+        .result
+    ).head
+  }
+
+  def appointNucleicAcidTest(idCard: IDCard, appointTime: Long, place: DetailedTrace): Try[Int] = Try {
+    if (await(NucleicAcidTestAppointTableInstance.filterByIDCard(idCard).exists.result)) throw exceptions.AppointAlreadyExists(idCard)
+    await(
+      NucleicAcidTestAppointTableInstance.instance += NucleicAcidTestAppoint(idCard, appointTime, place)
+    )
+    await(
+      NucleicAcidTestPointTableInstance
+        .filterByPlace(place)
+        .map(nucleic_acid_test_point => nucleic_acid_test_point.waitingPerson).result.headOption
+        .flatMap{ value =>
+          NucleicAcidTestPointTableInstance
+            .filterByPlace(place)
+            .map(nucleic_acid_test_point => nucleic_acid_test_point.waitingPerson)
+            .update(value.get+ 1)
+        }
+    )
+  }
+
+  def finishNucleicAcidTest(idCard: IDCard, place: DetailedTrace): Try[Int] = Try {
+    if (await(NucleicAcidTestAppointTableInstance.filterByIDCard(idCard).exists.result)) throw exceptions.NoAppoint(idCard)
+    await(
+      NucleicAcidTestAppointTableInstance
+        .filterByIDCard(idCard)
+        .delete
+    )
+    await(
+      NucleicAcidTestPointTableInstance
+        .filterByPlace(place)
+        .map(nucleic_acid_test_point => nucleic_acid_test_point.waitingPerson).result.headOption
+        .flatMap{ value =>
+          NucleicAcidTestPointTableInstance
+            .filterByPlace(place)
+            .map(nucleic_acid_test_point => nucleic_acid_test_point.waitingPerson)
+            .update(value.get + 1)
+        }
+    )
   }
 }
