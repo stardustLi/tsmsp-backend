@@ -49,6 +49,10 @@ function assertError(result, value) {
 	assert.equal(result.message, value);
 }
 
+const ERRORS = {
+	NO_PERMISSION: '错误！没有权限进行此操作',
+};
+
 async function test() {
 	try {
 		const
@@ -56,6 +60,13 @@ async function test() {
 			place = { province: '卷猫', city: '猫猫', county: '真猫' };
 		let userToken = '', rootToken = '', hzkToken = '';
 
+		/*
+			单元测试账号列表：
+			userName	password	realName	idCard
+			cat			lszzsxn		猫猫		00000000000000001x
+			wide		hzkhzk		卷宽		00000000000000028x
+			root		123456		管理员		400000202101081832
+		*/
 		{ // 登录/注册测试 (user.common)
 			// 注册以及用户已存在
 			await startModule('UserRegisterMessage', async type => {
@@ -188,28 +199,20 @@ async function test() {
 					type, userToken, idCard, time: 233,
 					trace: { province: '省 4', city: '市 4', county: '区 4' }
 				};
-				const result1 = await POST(data);
-				assert.equal(result1.status, 0);
-				assert.equal(result1.message, 0);
+				assertSuccess(await POST(data), 0);
 
 				data.time = traces.at(-1).time;
 				data.trace = { province: '省 5', city: '市 5', county: '区 5' };
-				const result2 = await POST(data);
-				assert.equal(result2.status, 0);
-				assert.equal(result2.message, 1);
+				assertSuccess(await POST(data));
 			});
 
 			// 删除轨迹
 			await startModule('UserDeleteTraceMessage', async type => {
-				const data = { type, userToken, idCard, time: 233, };
-				const result1 = await POST(data);
-				assert.equal(result1.status, 0);
-				assert.equal(result1.message, 0);
+				const data = { type, userToken, idCard, time: 233 };
+				assertSuccess(await POST(data), 0);
 
 				data.time = traces.at(-2).time;
-				const result2 = await POST(data);
-				assert.equal(result2.status, 0);
-				assert.equal(result2.message, 1);
+				assertSuccess(await POST(data));
 				traces.splice(-2, 1);
 			});
 
@@ -218,7 +221,7 @@ async function test() {
 				const data = { type, userToken, idCard, startTime: 0, endTime: 1e18 };
 				const result = await POST(data);
 				assert.equal(result.status, 0);
-				assert(Array.isArray(result.message) && result.message.length === traces.length);
+				assert(Array.isArray(result.message) && result.message.length === 2);
 			}, 0);
 
 			console.log('\x1b[35m删除剩余全部数据 ...\x1b[0m\n');
@@ -226,9 +229,7 @@ async function test() {
 				await Promise.all(
 					traces.map(async trace => {
 						const data = { type, userToken, idCard, time: trace.time };
-						const result = await POST(data);
-						assert.equal(result.status, 0);
-						assert.equal(result.message, 1);
+						assertSuccess(await POST(data));
 					})
 				);
 			}, 0);
@@ -237,7 +238,16 @@ async function test() {
 		{ // 贴贴轨迹测试 (trace.withPeople)
 			// 上报密接
 			await startModule('UserAddTraceWithPeopleMessage', async type => {
-				const data = { type, userToken, idCard, personIdCard: '012345678901234560' };
+				const data = { type, userToken, idCard, cc: 'no-such-user' };
+				assert.equal((await POST(data)).status, -1);
+
+				data.cc = 'wide';
+				assertSuccess(await POST(data));
+
+				data.cc = 'root';
+				assertSuccess(await POST(data));
+
+				data.cc = 'wide';
 				assertSuccess(await POST(data));
 			});
 
@@ -248,8 +258,69 @@ async function test() {
 				const result = await POST(data);
 				assert.equal(result.status, 0);
 				traces = result.message;
-				assert(Array.isArray(traces));
+				assert(Array.isArray(traces) && traces.length === 3);
 			});
+
+			// 更新轨迹
+			await startModule('UserUpdateTraceWithPeopleMessage', async type => {
+				const data = { type, userToken, idCard, time: 233, cc: 'cat' };
+				assertSuccess(await POST(data), 0);
+
+				data.time = traces.at(-1).time;
+				assertSuccess(await POST(data));
+			});
+
+			// 删除轨迹
+			await startModule('UserDeleteTraceWithPeopleMessage', async type => {
+				const data = { type, userToken, idCard, time: 233 };
+				assertSuccess(await POST(data), 0);
+
+				data.time = traces.at(-2).time;
+				assertSuccess(await POST(data));
+				traces.splice(-2, 1);
+			});
+
+			// wide & cat
+			console.log('\x1b[35m检查是否成功删除 ...\x1b[0m\n');
+			await startModule('UserGetTraceWithPeopleMessage', async type => {
+				const data = { type, userToken, idCard, startTime: 0, endTime: 1e18 };
+				const result = await POST(data);
+				assert.equal(result.status, 0);
+				assert(
+					Array.isArray(result.message) &&
+					result.message.length === 2 &&
+					result.message[0].CCUserName === 'wide' &&
+					result.message[1].CCUserName === 'cat' &&
+					!Object.hasOwn(result.message[0], 'CCIDCard')
+				);
+			}, 0);
+
+			await startModule('UserGetTraceWithPeopleWithIDCardMessage', async type => {
+				const data = { type, userToken, idCard, startTime: 0, endTime: 1e18 };
+				assertError(await POST(data), ERRORS.NO_PERMISSION);
+
+				data.userToken = rootToken;
+				const result = await POST(data);
+				assert.equal(result.status, 0);
+				assert(
+					Array.isArray(result.message) &&
+					result.message.length === 2 &&
+					result.message[0].CCUserName === 'wide' &&
+					result.message[1].CCUserName === 'cat' &&
+					result.message[0].CCIDCard === hzkIdCard &&
+					result.message[1].CCIDCard === idCard
+				);
+			});
+
+			console.log('\x1b[35m删除剩余全部数据 ...\x1b[0m\n');
+			await startModule('UserDeleteTraceWithPeopleMessage', async type => {
+				await Promise.all(
+					traces.map(async trace => {
+						const data = { type, userToken, idCard, time: trace.time };
+						assertSuccess(await POST(data));
+					})
+				);
+			}, 0);
 		}
 
 		{ // 政策测试 (policy)
@@ -260,7 +331,7 @@ async function test() {
 				console.log(`\x1b[35m政策修改第 \x1b[32m${t + 1}/2\x1b[35m 轮 ...\x1b[0m`);
 				await startModule('PolicyUpdateMessage', async type => {
 					const data = { type, userToken, place, content: policies[t] };
-					assertError(await POST(data), '错误！没有权限进行此操作');
+					assertError(await POST(data), ERRORS.NO_PERMISSION);
 
 					data.userToken = rootToken;
 					assertSuccess(await POST(data));
@@ -325,7 +396,7 @@ async function test() {
 				console.log(`\x1b[35m风险区修改第 \x1b[32m${t + 1}/3\x1b[35m 轮 ...\x1b[0m`);
 				await startModule('SetDangerousPlaceMessage', async type => {
 					const data = { type, userToken, place, level: t };
-					assertError(await POST(data), '错误！没有权限进行此操作');
+					assertError(await POST(data), ERRORS.NO_PERMISSION);
 
 					data.userToken = rootToken;
 					assertSuccess(await POST(data));
@@ -359,7 +430,7 @@ async function test() {
 				const
 					dataGet = { type: 'GetAdminPermissionMessage', userToken },
 					dataSet = { type: 'SetAdminPermissionMessage', userToken, permission };
-				assertError(await POST(dataSet), '错误！没有权限进行此操作');
+				assertError(await POST(dataSet), ERRORS.NO_PERMISSION);
 
 				dataSet.userToken = rootToken;
 				assertSuccess(await POST(dataSet));
@@ -376,7 +447,7 @@ async function test() {
 					assertSuccess(await POST(data2), 2);
 
 					const data3 = { type: 'PolicyUpdateMessage', userToken, place, content: '改不了的' };
-					assertError(await POST(data3), '错误！没有权限进行此操作');
+					assertError(await POST(data3), ERRORS.NO_PERMISSION);
 				}
 
 				dataSet.permission = { userName: 'cat', setPolicy: true };
@@ -394,7 +465,7 @@ async function test() {
 					assertSuccess(await POST(data2), '卷宽太坏了');
 
 					const data3 = { type: 'SetDangerousPlaceMessage', userToken, place, level: 1 };
-					assertError(await POST(data3), '错误！没有权限进行此操作');
+					assertError(await POST(data3), ERRORS.NO_PERMISSION);
 				}
 
 				dataSet.permission = { userName: 'cat' };
@@ -427,7 +498,7 @@ async function test() {
 			// 查询申诉
 			await startModule('QueryAppealMessage', async type => {
 				const data = { type, userToken, idCard };
-				assertError(await POST(data), '错误！没有权限进行此操作');
+				assertError(await POST(data), ERRORS.NO_PERMISSION);
 
 				assertSuccess(await POST({
 					type: 'SetAdminPermissionMessage',
@@ -451,7 +522,7 @@ async function test() {
 				}));
 
 				data.idCard = idCard;
-				assertError(await POST(data), '错误！没有权限进行此操作');
+				assertError(await POST(data), ERRORS.NO_PERMISSION);
 			});
 
 			// 解决申诉

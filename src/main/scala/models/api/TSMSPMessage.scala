@@ -31,10 +31,14 @@ import models.types.JacksonSerializable
 
     new JsonSubTypes.Type(value = classOf[UserAddTraceMessage], name = "UserAddTraceMessage"),
     new JsonSubTypes.Type(value = classOf[UserDeleteTraceMessage], name = "UserDeleteTraceMessage"),
-    new JsonSubTypes.Type(value = classOf[UserGetTraceMessage], name = "UserGetTraceMessage"),
     new JsonSubTypes.Type(value = classOf[UserUpdateTraceMessage], name = "UserUpdateTraceMessage"),
+    new JsonSubTypes.Type(value = classOf[UserGetTraceMessage], name = "UserGetTraceMessage"),
+
     new JsonSubTypes.Type(value = classOf[UserAddTraceWithPeopleMessage], name = "UserAddTraceWithPeopleMessage"),
+    new JsonSubTypes.Type(value = classOf[UserDeleteTraceWithPeopleMessage], name = "UserDeleteTraceWithPeopleMessage"),
+    new JsonSubTypes.Type(value = classOf[UserUpdateTraceWithPeopleMessage], name = "UserUpdateTraceWithPeopleMessage"),
     new JsonSubTypes.Type(value = classOf[UserGetTraceWithPeopleMessage], name = "UserGetTraceWithPeopleMessage"),
+    new JsonSubTypes.Type(value = classOf[UserGetTraceWithPeopleWithIDCardMessage], name = "UserGetTraceWithPeopleWithIDCardMessage"),
 
     new JsonSubTypes.Type(value = classOf[PolicyQueryMessage], name = "PolicyQueryMessage"),
     new JsonSubTypes.Type(value = classOf[PolicyUpdateMessage], name = "PolicyUpdateMessage"),

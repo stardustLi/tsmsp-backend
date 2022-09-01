@@ -65,20 +65,15 @@ object UserService {
   def apiSetAdminPermission(token: String, permission: UserAdminPermission, now: DateTime): Try[Int] = Try {
     await(
       (
-        checkPermission(token, _.admin, now) >>
+        checkAdminPermission(token, _.admin, now) >>
         UserAdminPermissionTableInstance.instance.insertOrUpdate(permission)
       ).transactionally
     )
   }
 
-  def getProfile(token: String, now: DateTime): Try[User] = Try {
+  def apiGetProfile(token: String, now: DateTime): Try[User] = Try {
     await(
-      findUserByToken(token, now).flatMap(
-        userName =>
-          UserTableInstance.filterByUserName(userName)
-            .result
-            .head
-      ).transactionally
+      findUserByToken(token, now).flatMap(getProfile).transactionally
     )
   }
 
@@ -163,12 +158,20 @@ object UserService {
       ).map(x => x._1 || x._2)
 
   /**
-   * 检查用户是否拥有某种权限
+   * 根据用户名获取用户信息
+   * @param userName 用户名
+   * @return
+   */
+  def getProfile(userName: UserName): DBIO[User] =
+    UserTableInstance.filterByUserName(userName).result.head
+
+  /**
+   * 检查用户是否拥有某种管理权限
    * @param token 用户 token
    * @param predicate 根据 UserAdminPermission 返回是否有权限的函数的谓词
    * @return
    */
-  def checkPermission(token: String, predicate: UserAdminPermission => Boolean, now: DateTime): DBIO[Unit] =
+  def checkAdminPermission(token: String, predicate: UserAdminPermission => Boolean, now: DateTime): DBIO[Unit] =
     findUserByToken(token, now).flatMap(
       userName =>
         UserAdminPermissionTableInstance.filterByUserName(userName).result.headOption
