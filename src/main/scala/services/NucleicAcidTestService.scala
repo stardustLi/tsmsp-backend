@@ -46,7 +46,7 @@ object NucleicAcidTestService {
   }
 
   def addNucleicAcidTestPoint(userToken: String, place: DetailedTrace, now: DateTime): Try[Int] = Try {
-    await(
+    await(//增加核酸点位
       (
         UserService.checkPermission(userToken, _.manageNucleicAcidTestPoints, now) >>
         (NucleicAcidTestPointTableInstance.instance += NucleicAcidTestPoint(place, 0))
@@ -55,7 +55,7 @@ object NucleicAcidTestService {
   }
 
   def queryWaitingPerson(place: DetailedTrace): Try[Option[Int]] = Try {
-    await(
+    await(//查询核酸点排队人数
       (
         NucleicAcidTestPointTableInstance
           .filterByPlace(place)
