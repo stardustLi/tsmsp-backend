@@ -68,7 +68,7 @@ object NucleicAcidTestService {
           NucleicAcidTestPointTableInstance
             .filterByPlace(place)
             .map(nucleic_acid_test_point => nucleic_acid_test_point.waitingPerson)
-            .update(value.get+ 1)
+            .update(value.get + 1)
         }
     )
   }
@@ -88,7 +88,7 @@ object NucleicAcidTestService {
           NucleicAcidTestPointTableInstance
             .filterByPlace(place)
             .map(nucleic_acid_test_point => nucleic_acid_test_point.waitingPerson)
-            .update(value.get + 1)
+            .update(value.get - 1)
         }
     )
   }
