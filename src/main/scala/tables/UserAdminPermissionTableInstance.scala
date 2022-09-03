@@ -16,7 +16,19 @@ class UserAdminPermissionTable(tag: Tag) extends Table[UserAdminPermission](tag,
   def setRiskAreas                = column[Boolean]("set_risk_areas")
   def setPolicy                   = column[Boolean]("set_policy")
   def manageNucleicAcidTestPoints = column[Boolean]("manage_natps")
-  def * = (userName, admin, readTraceId, viewAppeals, setRiskAreas, setPolicy, manageNucleicAcidTestPoints).mapTo[UserAdminPermission]
+  def finishNucleicAcidTest       = column[Boolean]("finish_nats")
+  def assignColor                 = column[Boolean]("assign_color")
+  def * = (
+    userName,
+    admin,
+    readTraceId,
+    viewAppeals,
+    setRiskAreas,
+    setPolicy,
+    manageNucleicAcidTestPoints,
+    finishNucleicAcidTest,
+    assignColor
+  ).mapTo[UserAdminPermission]
 }
 
 object UserAdminPermissionTableInstance {
@@ -34,5 +46,7 @@ object UserAdminPermissionTableInstance {
     setRiskAreas = true,
     setPolicy = true,
     manageNucleicAcidTestPoints = true,
+    finishNucleicAcidTest = true,
+    assignColor = true,
   )
 }

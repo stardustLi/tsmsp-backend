@@ -1,5 +1,6 @@
 package services
 
+import com.typesafe.scalalogging.Logger
 import org.joda.time.DateTime
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.Try
@@ -10,6 +11,10 @@ import tables.PolicyTableInstance
 import utils.db.await
 
 object PolicyService {
+  val LOGGER: Logger = Logger("PolicyService")
+
+  /******** 对外开放 API: 带 Try，带 await(*.transactionally) ********/
+  /** 查询政策 */
   def policyQuery(place: Trace): Try[Option[String]] = Try {
     await(
       (
@@ -46,6 +51,7 @@ object PolicyService {
     )
   }
 
+  /** 添加政策 */
   def policyUpdate(userToken: String, place: Trace, content: String, now: DateTime): Try[Int] = Try {
     await(
       (

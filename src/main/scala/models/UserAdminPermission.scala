@@ -9,5 +9,7 @@ case class UserAdminPermission (
   viewAppeals: Boolean,
   setRiskAreas: Boolean,
   setPolicy: Boolean,
-  manageNucleicAcidTestPoints: Boolean
+  manageNucleicAcidTestPoints: Boolean,
+  finishNucleicAcidTest: Boolean,
+  assignColor: Boolean
 )

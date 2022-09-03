@@ -11,7 +11,7 @@ class UserTraceWithPeopleTable(tag: Tag) extends Table[UserTraceWithPeople](tag,
   def ThisPeople = column[IDCard]("this_people")
   def CCUserName = column[UserName]("cc_user_name")
   def CCIDCard   = column[IDCard]("cc_id_card")
-  def time       = column[Long]("time")
+  def time       = column[Long]("time", O.Unique)
   def *          = (ThisPeople, CCUserName, CCIDCard, time).mapTo[UserTraceWithPeople]
 }
 

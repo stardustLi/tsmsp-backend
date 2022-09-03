@@ -59,7 +59,6 @@ async function test() {
 			idCard = '00000000000000001x', hzkIdCard = '00000000000000028x',
 			place = { province: '卷猫', city: '猫猫', county: '真猫' };
 		let userToken = '', rootToken = '', hzkToken = '';
-
 		/*
 			单元测试账号列表：
 			userName	password	realName	idCard
@@ -158,7 +157,7 @@ async function test() {
 				const result3 = await POST(data);
 				assertError(result3, '错误！用户不存在或登录信息已过期！');
 			});
-			
+
 			// 修改密码
 			await startModule('UserChangePasswordMessage', async type => {
 				const result1 = await POST({ type, userToken, newPassword: 'AAAAAAAA'});
@@ -403,7 +402,7 @@ async function test() {
 			}, 0);
 		}
 
-		{ // 风险区测试 (dangerousPlace)
+		{ // 风险区测试 (code.`dangerousPlace`)
 			// 风险区修改和查询
 			for (let t = 0; t < 3; ++t) {
 				console.log(`\x1b[35m风险区修改第 \x1b[32m${t + 1}/3\x1b[35m 轮 ...\x1b[0m`);
