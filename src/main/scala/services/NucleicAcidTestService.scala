@@ -30,7 +30,7 @@ object NucleicAcidTestService {
   def getAllNucleicAcidTestPoints(): Try[List[NucleicAcidTestPoint]] = Try {
     await(
       (
-      NucleicAcidTestPointTableInstance.instance.result
+        NucleicAcidTestPointTableInstance.instance.result
       ).transactionally
     ).toList
   }
@@ -85,7 +85,7 @@ object NucleicAcidTestService {
           .filterByPlace(place)
           .length
           .result
-        ).transactionally
+      ).transactionally
     )
   }
 
