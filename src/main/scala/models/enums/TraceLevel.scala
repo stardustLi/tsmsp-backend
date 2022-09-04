@@ -7,8 +7,8 @@ import com.fasterxml.jackson.databind.deser.std.StdDeserializer
 import com.fasterxml.jackson.databind.ser.std.StdSerializer
 import slick.lifted.MappedTo
 
-@JsonSerialize(using = classOf[CodeColorSerializer])
-@JsonDeserialize(using = classOf[CodeColorSerializerDeserializer])
+@JsonSerialize(using = classOf[TraceLevelSerializer])
+@JsonDeserialize(using = classOf[TraceLevelDeserializer])
 sealed abstract class TraceLevel(val value: Int) extends MappedTo[Int] {
   def isTop: Boolean
   def next: TraceLevel
@@ -41,7 +41,7 @@ class TraceLevelSerializer extends StdSerializer[TraceLevel](classOf[TraceLevel]
     gen.writeNumber(traceLevel.value)
 }
 
-class TraceLevelSerializerDeserializer extends StdDeserializer[TraceLevel](classOf[TraceLevel]) {
+class TraceLevelDeserializer extends StdDeserializer[TraceLevel](classOf[TraceLevel]) {
   override def deserialize(p: JsonParser, ctx: DeserializationContext): TraceLevel =
     TraceLevel.getType(p.getIntValue)
 }

@@ -143,30 +143,49 @@ object TraceService {
     await(UserService.checkAdminPermission(userToken, _.createPlace, now).transactionally)
     if (traceDescriptor.isEmpty) throw exceptions.PlaceIsEmpty()
     if (traceDescriptor.length > TraceLevel.objectList.length) throw exceptions.PlaceTooLong()
+    LOGGER.info("%o", traceDescriptor)
     var currentLevel: TraceLevel = TraceLevel.PROVINCE
     var currentID: TraceID = TraceID(0)
     var currentTrace: Option[Trace] = None
     for (name <- traceDescriptor) {
-      await(
+      val nextID: TraceID = await(
         TraceTreeTableInstance
           .filterByNameLevelPID(name, currentLevel, currentID)
           .result
           .headOption
       ) match {
-        case Some(place) =>
-          currentID = place.id
-        case _ =>
-          currentID = await(
-            TraceTreeTableInstance.instanceWithId +=
-              TraceTree(TraceID(0), name, currentLevel, currentID)
-          )
+        case Some(place) => place.id
+        case _ => await(
+          TraceTreeTableInstance.instanceWithId +=
+          TraceTree(TraceID(0), name, currentLevel, currentID)
+        )
       }
-      val trace: Trace = new Trace(currentID, name, currentLevel)
+      val trace: Trace = new Trace(nextID, name, currentLevel)
       trace.parent = currentTrace
+      currentID = nextID
       currentTrace = Some(trace)
       currentLevel = currentLevel.next
     }
     currentTrace.get
+  }
+
+  /** 获取地点信息 */
+  def getPlaceInfo(traceID: TraceID): Try[Option[Trace]] = Try {
+    traceID2Trace(traceID)
+  }
+
+  /** 获取下属地点信息 */
+  case class PartialTraceTree(id: TraceID, name: String, level: TraceLevel)
+  def getPlaceSubordinates(traceID: TraceID): Try[List[PartialTraceTree]] = Try {
+    await(
+      (
+        TraceTreeTableInstance
+          .filterByPID(traceID)
+          .result
+      ).transactionally
+    ).map(
+      tree => PartialTraceTree(tree.id, tree.name, tree.level)
+    ).toList
   }
 
   /******** 内部 API ********/

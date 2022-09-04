@@ -8,7 +8,7 @@ import com.fasterxml.jackson.databind.ser.std.StdSerializer
 import slick.lifted.MappedTo
 
 @JsonSerialize(using = classOf[RiskLevelSerializer])
-@JsonDeserialize(using = classOf[RiskLevelSerializerDeserializer])
+@JsonDeserialize(using = classOf[RiskLevelDeserializer])
 sealed abstract class RiskLevel(val value: Int) extends MappedTo[Int] {
   def color: CodeColor
 }
@@ -33,7 +33,7 @@ class RiskLevelSerializer extends StdSerializer[RiskLevel](classOf[RiskLevel]) {
     gen.writeNumber(riskLevel.value)
 }
 
-class RiskLevelSerializerDeserializer extends StdDeserializer[RiskLevel](classOf[RiskLevel]) {
+class RiskLevelDeserializer extends StdDeserializer[RiskLevel](classOf[RiskLevel]) {
   override def deserialize(p: JsonParser, ctx: DeserializationContext): RiskLevel =
     RiskLevel.getType(p.getIntValue)
 }

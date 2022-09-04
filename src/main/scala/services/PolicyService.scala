@@ -31,7 +31,12 @@ object PolicyService {
       PolicyTableInstance.filterByPlaces(traceIDList).result
       .map(
         result =>
-          traceIDList.find(traceID => result.exists(_.place == traceID)) match {
+          traceIDList.find(
+            traceID => result.find(_.place == traceID) match {
+              case Some(policy) if policy.contents.nonEmpty => true
+              case _ => false
+            }
+          ) match {
             case Some(traceID) => Some(result.find(_.place == traceID).get.contents)
             case _ => None
           }

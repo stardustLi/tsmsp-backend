@@ -8,7 +8,7 @@ import com.fasterxml.jackson.databind.ser.std.StdSerializer
 import slick.lifted.MappedTo
 
 @JsonSerialize(using = classOf[CodeColorSerializer])
-@JsonDeserialize(using = classOf[CodeColorSerializerDeserializer])
+@JsonDeserialize(using = classOf[CodeColorDeserializer])
 sealed abstract class CodeColor(val value: Int) extends MappedTo[Int] {
   def next: CodeColor
 }
@@ -38,7 +38,7 @@ class CodeColorSerializer extends StdSerializer[CodeColor](classOf[CodeColor]) {
     gen.writeNumber(CodeColor.value)
 }
 
-class CodeColorSerializerDeserializer extends StdDeserializer[CodeColor](classOf[CodeColor]) {
+class CodeColorDeserializer extends StdDeserializer[CodeColor](classOf[CodeColor]) {
   override def deserialize(p: JsonParser, ctx: DeserializationContext): CodeColor =
     CodeColor.getType(p.getIntValue)
 }

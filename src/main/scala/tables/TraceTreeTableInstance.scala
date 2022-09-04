@@ -27,6 +27,9 @@ object TraceTreeTableInstance {
   def filterByID(id: TraceID): Query[TraceTreeTable, TraceTree, Seq] =
     instance.filter(trace => trace.id === id)
 
+  def filterByPID(parentID: TraceID): Query[TraceTreeTable, TraceTree, Seq] =
+    instance.filter(trace => trace.parentID === parentID)
+
   def filterByNameLevelPID(name: String, level: TraceLevel, parentID: TraceID): Query[TraceTreeTable, TraceTree, Seq] = {
     import models.types.CustomColumnTypes._
     instance.filter(trace => trace.name === name && trace.level === level && trace.parentID === parentID)
