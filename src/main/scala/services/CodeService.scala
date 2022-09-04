@@ -72,6 +72,7 @@ object CodeService {
 
   /** 获取一个地区的风险程度 */
   def dangerousQuery(place: Trace): Try[RiskLevel] = Try {
+    import models.types.CustomColumnTypes._
     await(
       (
         DangerousPlaceTableInstance.filterByPlace(place)
@@ -94,6 +95,7 @@ object CodeService {
 
   /** 获取用户健康码颜色 */
   def getColor(userToken: String, idCard: IDCard, now: DateTime): Try[CodeColor] = Try {
+    import models.types.CustomColumnTypes._
     await(
       (
         UserService.checkUserHasAccessByTokenAndIDCard(userToken, idCard, now) >>
@@ -175,12 +177,14 @@ object CodeService {
    * @param people 身份证号列表
    * @return
    */
-  def getMostDangerousColor(people: List[IDCard]): DBIO[Option[CodeColor]] =
+  def getMostDangerousColor(people: List[IDCard]): DBIO[Option[CodeColor]] = {
+    import models.types.CustomColumnTypes._
     UserColorTableInstance.instance.filter(
       userColor => userColor.idCard.inSet(people)
     ).map(
       userColor => userColor.color
     ).max.result
+  }
 
   /**
    * 获取 places 中风险度最高地区的风险度
@@ -202,9 +206,11 @@ object CodeService {
    * @param color 健康码颜色
    * @return 1
    */
-  def updateColor(idCard: IDCard, color: CodeColor): DBIO[Int] =
+  def updateColor(idCard: IDCard, color: CodeColor): DBIO[Int] = {
+    import models.types.CustomColumnTypes._
     UserColorTableInstance
       .filterByIDCard(idCard)
       .map(userColor => userColor.color)
       .update(color)
+  }
 }

@@ -17,15 +17,12 @@ object CodeColor {
   case object GREEN extends CodeColor(0) {
     def next: CodeColor = GREEN
   }
-
   case object ALERT extends CodeColor(1) {
     def next: CodeColor = GREEN
   }
-
   case object YELLOW extends CodeColor(2) {
     def next: CodeColor = ALERT
   }
-
   case object RED extends CodeColor(3) {
     def next: CodeColor = YELLOW
   }

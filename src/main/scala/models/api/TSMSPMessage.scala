@@ -6,7 +6,7 @@ import org.joda.time.DateTime
 import scala.util.{Failure, Success, Try}
 import models.api.code._
 import models.api.code.appeal._
-import models.api.dangerousPlace._
+import models.api.nucleicAcidTest._
 import models.api.policy._
 import models.api.trace.withPeople._
 import models.api.trace.common._
@@ -59,7 +59,12 @@ import models.types.JacksonSerializable
     new JsonSubTypes.Type(value = classOf[UserAddVaccineMessage], name = "UserAddVaccineMessage"),
     new JsonSubTypes.Type(value = classOf[UserGetVaccineMessage], name = "UserGetVaccineMessage"),
     // nucleicAcidTest
-    new JsonSubTypes.Type(value = classOf[UserGetAcidMessage], name = "UserGetAcidMessage"),
+    new JsonSubTypes.Type(value = classOf[AddNucleicAcidTestPointMessage], name = "AddNucleicAcidTestPointMessage"),
+    new JsonSubTypes.Type(value = classOf[AppointNucleicAcidTestMessage], name = "AppointNucleicAcidTestMessage"),
+    new JsonSubTypes.Type(value = classOf[FinishNucleicAcidTestMessage], name = "FinishNucleicAcidTestMessage"),
+    new JsonSubTypes.Type(value = classOf[GetAllNucleicAcidTestPointMessage], name = "GetAllNucleicAcidTestPointMessage"),
+    new JsonSubTypes.Type(value = classOf[GetNucleicAcidTestResultsMessage], name = "GetNucleicAcidTestResultsMessage"),
+    new JsonSubTypes.Type(value = classOf[QueryTestPointWaitingPersonMessage], name = "QueryTestPointWaitingPersonMessage"),
   )
 )
 abstract class TSMSPMessage extends JacksonSerializable {
