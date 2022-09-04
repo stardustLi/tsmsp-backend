@@ -1,6 +1,6 @@
 package exceptions
 
-import models.fields.{IDCard, UserName}
+import models.fields.{IDCard, NucleicAcidTestPointName, UserName}
 
 case class TokenNotExists() extends Exception {
   override def getMessage: String = "错误！用户不存在或登录信息已过期！"
@@ -36,6 +36,14 @@ case class NoAccessOfIdCard(idCard: IDCard) extends Exception {
 
 case class NoPermission() extends Exception {
   override def getMessage: String = "错误！没有权限进行此操作"
+}
+
+case class NucleicAcidTestPointNameInvalid(name: NucleicAcidTestPointName) extends Exception {
+  override def getMessage: String = s"核酸测试点名称 ${name.value} 不合法！"
+}
+
+case class NucleicAcidTestPointNotExists(name: NucleicAcidTestPointName) extends Exception {
+  override def getMessage: String = s"核酸测试点 ${name.value} 不存在！"
 }
 
 case class AppointAlreadyExists(idCard: IDCard) extends Exception {

@@ -2,10 +2,10 @@ package services
 
 import com.typesafe.scalalogging.Logger
 import org.joda.time.DateTime
-
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.Try
 import slick.jdbc.PostgresProfile.api._
+
 import models.fields.{IDCard, Password, UserName}
 import models.{User, UserOthersQuery, UserAdminPermission, UserToken}
 import tables.{UserOthersQueryTableInstance, UserAdminPermissionTableInstance, UserTable, UserTableInstance, UserTokenTable, UserTokenTableInstance}
@@ -16,6 +16,12 @@ object UserService {
   val LOGGER: Logger = Logger("UserService")
 
   /******** 对外开放 API: 带 Try，带 await(*.transactionally) ********/
+  /**
+   * 登录
+   * @param userName 用户名
+   * @param password 密码
+   * @return token
+   */
   def login(userName: UserName, password: Password, now: DateTime): Try[String] = Try {
     val userQuery: Query[UserTable, User, Seq] = UserTableInstance.filterByUserPass(userName, password)
     await(
@@ -28,6 +34,14 @@ object UserService {
     )
   }
 
+  /**
+   * 注册
+   * @param userName 用户名
+   * @param password 密码
+   * @param realName 真实姓名
+   * @param idCard 身份证号
+   * @return token
+   */
   def register(userName: UserName, password: Password, realName: String, idCard: IDCard, now: DateTime): Try[String] = Try {
     val userQuery: Query[UserTable, User, Seq] = UserTableInstance.filterByUserName(userName)
     if (!userName.isValid()) throw exceptions.UserNameInvalid(userName)
@@ -51,6 +65,11 @@ object UserService {
     )
   }
 
+  /**
+   * 更改密码
+   * @param newPassword 新密码
+   * @return 新 token
+   */
   def changePassword(token: String, newPassword: Password, now: DateTime): Try[String] = Try {
     await(
       findUserByToken(token, now).flatMap(
@@ -68,6 +87,10 @@ object UserService {
     )
   }
 
+  /**
+   * 获取用户的管理权限
+   * @return 管理权限列表
+   */
   def apiGetAdminPermission(token: String, now: DateTime): Try[Option[UserAdminPermission]] = Try {
     await(
       findUserByToken(token, now).flatMap(
@@ -79,6 +102,11 @@ object UserService {
     )
   }
 
+  /**
+   * 设置用户的管理权限
+   * @param permission 管理权限列表
+   * @return 1
+   */
   def apiSetAdminPermission(token: String, permission: UserAdminPermission, now: DateTime): Try[Int] = Try {
     await(
       (
@@ -88,12 +116,21 @@ object UserService {
     )
   }
 
+  /**
+   * 获取用户信息
+   * @return 用户信息列表
+   */
   def apiGetProfile(token: String, now: DateTime): Try[User] = Try {
     await(
       findUserByToken(token, now).flatMap(getProfile).transactionally
     )
   }
 
+  /**
+   * 授予访问权限
+   * @param trusted 被授予的用户
+   * @return 1
+   */
   def grantPermission(token: String, trusted: UserName, now: DateTime): Try[Int] = Try {
     await(
       findUserByToken(token, now).flatMap(
@@ -109,6 +146,11 @@ object UserService {
     )
   }
 
+  /**
+   * 撤回访问权限
+   * @param trusted 被撤回的用户
+   * @return 1
+   */
   def revokePermission(token: String, trusted: UserName, now: DateTime): Try[Int] = Try {
     await(
       findUserByToken(token, now).flatMap(
@@ -124,6 +166,10 @@ object UserService {
     )
   }
 
+  /**
+   * 获取信任用户的列表
+   * @return List[String]，信任用户名的列表
+   */
   def fetchAllGrantedUsers(token: String, now: DateTime): Try[List[String]] = Try {
     await (
       findUserByToken(token, now).flatMap(
@@ -165,19 +211,22 @@ object UserService {
    * 检查用户是否有能力访问身份证号为 idCard 的人
    * @param token 用户 token
    * @param idCard 身份证号
-   * @return 布尔值
+   * @return 成功返回 Unit，失败抛出错误
    */
-  def checkUserHasAccessByTokenAndIDCard(token: String, idCard: IDCard, now: DateTime): DBIO[Boolean] =
+  def checkUserHasAccessByTokenAndIDCard(token: String, idCard: IDCard, now: DateTime): DBIO[Unit] =
     findUserByToken(token, now)
-      .flatMap(userName =>
-        UserTableInstance.filterByUserIDCard(userName, idCard).exists.result zip
-        UserOthersQueryTableInstance.filterByUserIDCard(userName, idCard).exists.result
-      ).map(x => x._1 || x._2)
+      .flatMap(
+        userName =>
+          UserTableInstance.filterByUserIDCard(userName, idCard).exists.result zip
+          UserOthersQueryTableInstance.filterByUserIDCard(userName, idCard).exists.result
+      ).map(x => {
+        if (!(x._1 || x._2)) throw exceptions.NoAccessOfIdCard(idCard)
+      })
 
   /**
    * 根据用户名获取用户信息
    * @param userName 用户名
-   * @return
+   * @return 对应用户信息
    */
   def getProfile(userName: UserName): DBIO[User] =
     UserTableInstance.filterByUserName(userName).result.head
@@ -186,7 +235,7 @@ object UserService {
    * 检查用户是否拥有某种管理权限
    * @param token 用户 token
    * @param predicate 根据 UserAdminPermission 返回是否有权限的函数的谓词
-   * @return
+   * @return 成功返回 Unit，失败抛出错误
    */
   def checkAdminPermission(token: String, predicate: UserAdminPermission => Boolean, now: DateTime): DBIO[Unit] =
     findUserByToken(token, now).flatMap(
@@ -194,16 +243,15 @@ object UserService {
         UserAdminPermissionTableInstance.filterByUserName(userName).result.headOption
     ).map(
       {
-        case None => throw exceptions.NoPermission()
-        case Some(permission) =>
-          if (!predicate(permission)) throw exceptions.NoPermission()
+        case Some(permission) if predicate(permission) => Unit
+        case _ => throw exceptions.NoPermission()
       }
     )
 
   /**
    * 检查用户 token 是否过期，并返回新 token
    * @param userName 用户名
-   * @return
+   * @return 当前有效 token
    */
   def checkToken(userName: UserName, now: DateTime, forceUpdate: Boolean = false): DBIO[String] = {
     val tokenQuery: Query[UserTokenTable, UserToken, Seq] = UserTokenTableInstance.filterByUserName(userName)

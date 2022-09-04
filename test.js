@@ -2,9 +2,14 @@
 
 const
 	assert = require('assert'),
+	crypto = require('crypto'),
 	exit = () => process.exit(0),
+	eq = require('util').isDeepStrictEqual,
 	httpRequest = require('http').request,
-	httpsRequest = require('https').request;
+	httpsRequest = require('https').request,
+	_ = Symbol('fetchOnly');
+
+assert.eq = assert.deepStrictEqual;
 
 const APIConfig = {
 	method: 'POST',
@@ -14,6 +19,20 @@ const APIConfig = {
 	path: '/api',
 	protocol: 'http:'
 };
+
+function randomChar() {
+	const r = Math.random();
+	if (r < 0.03) return 45;
+	if (r < 0.06) return 95;
+	if (r < 0.24) return crypto.randomInt(48, 58);
+	if (r < 0.42) return crypto.randomInt(65, 91);
+	if (r < 0.6) return crypto.randomInt(97, 123);
+	return crypto.randomInt(0x4e00, 0x9fa6);
+}
+
+function randomString(length) {
+	return String.fromCharCode(...Array.from({ length }, randomChar));
+}
 
 function request(config) {
 	return new Promise((fulfill, reject) => {
@@ -40,13 +59,22 @@ async function startModule(type, test, log = 2) {
 }
 
 function assertSuccess(result, value = 1) {
-	assert.equal(result.status, 0);
-	assert.equal(result.message, value);
+	assert.eq(result.status, 0);
+	if (value !== _) assert.eq(result.message, value);
+	return result.message;
 }
 
-function assertError(result, value) {
-	assert.equal(result.status, -1);
-	assert.equal(result.message, value);
+function assertError(result, value = _) {
+	assert.eq(result.status, -1);
+	if (value !== _) assert.eq(result.message, value);
+	return result.message;
+}
+
+function assertTime(time) {
+	assert.eq(typeof time, 'number');
+	const diff = Math.abs(new Date(time) - new Date()) / 1e3;
+	if (process.argv.includes('--trace')) console.log(`\x1b[1;36m>>>>>>>>>>>>>>>> 时间差: ${diff} 秒\x1b[0m`);
+	assert(diff < 30); // 30 sec
 }
 
 const ERRORS = {
@@ -58,8 +86,7 @@ async function test() {
 		const
 			idCard = '00000000000000001x', hzkIdCard = '00000000000000028x',
 			place = { province: '卷猫', city: '猫猫', county: '真猫' };
-		let userToken = '', rootToken = '', hzkToken = '';
-
+		let userToken = '', hzkToken = '', rootToken = '';
 		/*
 			单元测试账号列表：
 			userName	password	realName	idCard
@@ -94,8 +121,7 @@ async function test() {
 				assertError(result1, '错误！用户名已经存在了');
 
 				data.userName = 'wide', data.password = 'hzkhzk', data.realName = '卷宽';
-				const result2 = await POST(data);
-				assert.equal(result2.status, -1);
+				assertError(await POST(data), _);
 
 				data.idCard = hzkIdCard.toUpperCase();
 				await POST(data);
@@ -103,8 +129,7 @@ async function test() {
 				/********/ console.log('\x1b[35mroot 用户 ...\x1b[0m'); /********/
 
 				data.userName = 'root', data.password = '123456', data.realName = '管理员', data.idCard = idCard;
-				const result3 = await POST(data);
-				assert.equal(result3.status, -1);
+				assertError(await POST(data), _);
 
 				data.idCard = '400000202101081832';
 				await POST(data);
@@ -112,64 +137,49 @@ async function test() {
 
 			// 登录
 			await startModule('UserLoginMessage', async type => {
-				const data = { type, userName: 'cat', password: 'lszzsxn' };
-
 				/********/ console.log('\x1b[35m普通用户 ...\x1b[0m'); /********/
 
-				const result1 = await POST(data);
-				assert.equal(result1.status, 0);
-				userToken = result1.message;
-				assert.equal(typeof userToken, 'string');
+				userToken = assertSuccess(await POST({ type, userName: 'cat', password: 'lszzsxn' }), _);
+				assert.eq(typeof userToken, 'string');
 
-				data.userName = 'wide', data.password = 'hzkhzk';
-				const result2 = await POST(data);
-				assert.equal(result2.status, 0);
-				hzkToken = result2.message;
-				assert.equal(typeof hzkToken, 'string');
+				hzkToken = assertSuccess(await POST({ type, userName: 'wide', password: 'hzkhzk' }), _);
+				assert.eq(typeof hzkToken, 'string');
 
 				/********/ console.log('\x1b[35mroot 用户 ...\x1b[0m'); /********/
 
-				data.userName = 'root', data.password = '123456';
-				const result3 = await POST(data);
-				assert.equal(result3.status, 0);
-				rootToken = result3.message;
-				assert.equal(typeof rootToken, 'string');
+				rootToken = assertSuccess(await POST({ type, userName: 'root', password: '123456' }), _);
+				assert.eq(typeof rootToken, 'string');
 			});
 
 			// 用户信息查询
 			await startModule('UserGetProfileMessage', async type => {
 				const data = { type, userToken };
-				const result1 = await POST(data);
-				assert.equal(result1.status, 0);
-				assert.equal(result1.message.userName, 'cat');
-				assert.equal(result1.message.password, 'lszzsxn');
-				assert.equal(result1.message.realName, '猫猫');
-				assert.equal(result1.message.idCard, idCard);
+				assertSuccess(
+					await POST(data),
+					{ userName: 'cat', password: 'lszzsxn', realName: '猫猫', idCard }
+				);
 
 				data.userToken = rootToken;
-				const result2 = await POST(data);
-				assert.equal(result2.status, 0);
-				assert.equal(result2.message.userName, 'root');
-				assert.equal(result2.message.password, '123456');
-				assert.equal(result2.message.realName, '管理员');
-				assert.equal(result2.message.idCard, '400000202101081832');
+				assertSuccess(
+					await POST(data),
+					{ userName: 'root', password: '123456', realName: '管理员', idCard: '400000202101081832' }
+				);
 
 				data.userToken = '不存在的';
-				const result3 = await POST(data);
-				assertError(result3, '错误！用户不存在或登录信息已过期！');
+				assertError(await POST(data), '错误！用户不存在或登录信息已过期！');
 			});
-			
+
 			// 修改密码
 			await startModule('UserChangePasswordMessage', async type => {
-				const result1 = await POST({ type, userToken, newPassword: 'AAAAAAAA'});
-				assert.equal(result1.status, 0);
-				const tempToken = result1.message;
-				assert.equal(typeof tempToken, 'string');
+				const tempToken = assertSuccess(
+					await POST({ type, userToken, newPassword: 'AAAAAAAA' }), _
+				);
+				assert.eq(typeof tempToken, 'string');
 
-				const result2 = await POST({ type, userToken: tempToken, newPassword: 'lszzsxn' });
-				assert.equal(result2.status, 0);
-				userToken = result2.message;
-				assert.equal(typeof userToken, 'string');
+				userToken = assertSuccess(
+					await POST({ type, userToken: tempToken, newPassword: 'lszzsxn' }), _
+				);
+				assert.eq(typeof userToken, 'string');
 			})
 		}
 
@@ -200,9 +210,7 @@ async function test() {
 			let traces = [];
 			await startModule('UserGetTraceMessage', async type => {
 				const data = { type, userToken, idCard, startTime: 0, endTime: 1e18 };
-				const result = await POST(data);
-				assert.equal(result.status, 0);
-				traces = result.message;
+				traces = assertSuccess(await POST(data), _);
 				assert(Array.isArray(traces) && traces.length === 3);
 			});
 
@@ -232,18 +240,16 @@ async function test() {
 			console.log('\x1b[35m检查是否成功删除 ...\x1b[0m\n');
 			await startModule('UserGetTraceMessage', async type => {
 				const data = { type, userToken, idCard, startTime: 0, endTime: 1e18 };
-				const result = await POST(data);
-				assert.equal(result.status, 0);
-				assert(Array.isArray(result.message) && result.message.length === 2);
+				const result = assertSuccess(await POST(data), _);
+				assert(Array.isArray(result) && result.length === 2);
 			}, 0);
 
 			console.log('\x1b[35m删除剩余全部数据 ...\x1b[0m\n');
 			await startModule('UserDeleteTraceMessage', async type => {
 				await Promise.all(
-					traces.map(async trace => {
-						const data = { type, userToken, idCard, time: trace.time };
-						assertSuccess(await POST(data));
-					})
+					traces.map(async trace =>
+						assertSuccess(await POST({ type, userToken, idCard, time: trace.time }))
+					)
 				);
 			}, 0);
 		}
@@ -252,7 +258,7 @@ async function test() {
 			// 上报密接
 			await startModule('UserAddTraceWithPeopleMessage', async type => {
 				const data = { type, userToken, idCard, cc: 'no-such-user' };
-				assert.equal((await POST(data)).status, -1);
+				assertError(await POST(data), _);
 
 				data.cc = 'wide';
 				assertSuccess(await POST(data));
@@ -268,9 +274,7 @@ async function test() {
 			let traces = [];
 			await startModule('UserGetTraceWithPeopleMessage', async type => {
 				const data = { type, userToken, idCard, startTime: 0, endTime: 1e18 };
-				const result = await POST(data);
-				assert.equal(result.status, 0);
-				traces = result.message;
+				traces = assertSuccess(await POST(data), _);
 				assert(Array.isArray(traces) && traces.length === 3);
 			});
 
@@ -297,14 +301,13 @@ async function test() {
 			console.log('\x1b[35m检查是否成功删除 ...\x1b[0m\n');
 			await startModule('UserGetTraceWithPeopleMessage', async type => {
 				const data = { type, userToken, idCard, startTime: 0, endTime: 1e18 };
-				const result = await POST(data);
-				assert.equal(result.status, 0);
+				const result = assertSuccess(await POST(data), _);
 				assert(
-					Array.isArray(result.message) &&
-					result.message.length === 2 &&
-					result.message[0].CCUserName === 'wide' &&
-					result.message[1].CCUserName === 'cat' &&
-					!Object.hasOwn(result.message[0], 'CCIDCard')
+					Array.isArray(result) &&
+					result.length === 2 &&
+					result[0].CCUserName === 'wide' &&
+					result[1].CCUserName === 'cat' &&
+					!Object.hasOwn(result[0], 'CCIDCard')
 				);
 			}, 0);
 
@@ -313,25 +316,23 @@ async function test() {
 				assertError(await POST(data), ERRORS.NO_PERMISSION);
 
 				data.userToken = rootToken;
-				const result = await POST(data);
-				assert.equal(result.status, 0);
+				const result = assertSuccess(await POST(data), _);
 				assert(
-					Array.isArray(result.message) &&
-					result.message.length === 2 &&
-					result.message[0].CCUserName === 'wide' &&
-					result.message[1].CCUserName === 'cat' &&
-					result.message[0].CCIDCard === hzkIdCard &&
-					result.message[1].CCIDCard === idCard
+					Array.isArray(result) &&
+					result.length === 2 &&
+					result[0].CCUserName === 'wide' &&
+					result[1].CCUserName === 'cat' &&
+					result[0].CCIDCard === hzkIdCard &&
+					result[1].CCIDCard === idCard
 				);
 			});
 
 			console.log('\x1b[35m删除剩余全部数据 ...\x1b[0m\n');
 			await startModule('UserDeleteTraceWithPeopleMessage', async type => {
 				await Promise.all(
-					traces.map(async trace => {
-						const data = { type, userToken, idCard, time: trace.time };
-						assertSuccess(await POST(data));
-					})
+					traces.map(async trace =>
+						assertSuccess(await POST({ type, userToken, idCard, time: trace.time }))
+					)
 				);
 			}, 0);
 		}
@@ -352,12 +353,11 @@ async function test() {
 
 				await startModule('PolicyQueryMessage', async type => {
 					const data = { type, place };
-					const result = await POST(data);
-					assert.equal(result.status, 0);
-					assert.equal(result.message, policies[t]);
+					assertSuccess(await POST(data), policies[t]);
 				});
 			}
 
+			// 不存在以及不合法政策测试
 			console.log('\x1b[35m不存在以及不合法政策测试 ...\x1b[0m\n');
 			await startModule('PolicyQueryMessage', async type => {
 				const data = { type, place: { province: '不存在的', city: '坏了', county: '没了' } };
@@ -368,10 +368,11 @@ async function test() {
 					await POST(data);
 					throw new Error();
 				} catch (e) {
-					assert.equal(e.message, 'Unexpected token U in JSON at position 0');
+					assert.eq(e.message, 'Unexpected token U in JSON at position 0');
 				}
 			}, 0);
 
+			// 政策继承测试
 			console.log('\x1b[1;35m政策继承测试 ...\x1b[0m\n');
 			await startModule('PolicyUpdateMessage', async type => {
 				const data = { type, userToken: rootToken, place: { province: '卷猫', city: '', county: '' }, content: '猫宽学！' };
@@ -403,7 +404,7 @@ async function test() {
 			}, 0);
 		}
 
-		{ // 风险区测试 (dangerousPlace)
+		{ // 风险区测试 (code.`DangerousPlaceMessage` / `SetDangerousPlaceMessage`)
 			// 风险区修改和查询
 			for (let t = 0; t < 3; ++t) {
 				console.log(`\x1b[35m风险区修改第 \x1b[32m${t + 1}/3\x1b[35m 轮 ...\x1b[0m`);
@@ -424,15 +425,14 @@ async function test() {
 			console.log('\x1b[35m不存在以及不合法地区测试 ...\x1b[0m\n');
 			await startModule('DangerousPlaceMessage', async type => {
 				const data = { type, place: { province: '不存在的', city: '坏了', county: '没了' } };
-				const result = await POST(data);
-				assert.equal(result.status, -1);
+				assertError(await POST(data), _);
 
 				data.place = { '猫猫': '宽宽' };
 				try {
 					await POST(data);
 					throw new Error();
 				} catch (e) {
-					assert.equal(e.message, 'Unexpected token U in JSON at position 0');
+					assert.eq(e.message, 'Unexpected token U in JSON at position 0');
 				}
 			}, 0);
 		}
@@ -448,9 +448,8 @@ async function test() {
 				dataSet.userToken = rootToken;
 				assertSuccess(await POST(dataSet));
 
-				const result1 = await POST(dataGet);
-				assert.equal(result1.status, 0);
-				assert(Object.entries(result1.message).every(([key, value]) => 'setRiskAreas' === key === value || key === 'userName'));
+				const result1 = assertSuccess(await POST(dataGet), _);
+				assert(Object.entries(result1).every(([key, value]) => 'setRiskAreas' === key === value || key === 'userName'));
 
 				{
 					const data1 = { type: 'SetDangerousPlaceMessage', userToken, place, level: 2 };
@@ -466,9 +465,8 @@ async function test() {
 				dataSet.permission = { userName: 'cat', setPolicy: true };
 				assertSuccess(await POST(dataSet));
 
-				const result2 = await POST(dataGet);
-				assert.equal(result2.status, 0);
-				assert(Object.entries(result2.message).every(([key, value]) => 'setPolicy' === key === value || key === 'userName'));
+				const result2 = assertSuccess(await POST(dataGet), _);
+				assert(Object.entries(result2).every(([key, value]) => 'setPolicy' === key === value || key === 'userName'));
 
 				{
 					const data1 = { type: 'PolicyUpdateMessage', userToken, place, content: '卷宽太坏了' };
@@ -484,9 +482,8 @@ async function test() {
 				dataSet.permission = { userName: 'cat' };
 				assertSuccess(await POST(dataSet));
 
-				const result3 = await POST(dataGet);
-				assert.equal(result3.status, 0);
-				assert(Object.entries(result3.message).every(([key, value]) => value === false || key === 'userName'));
+				const result3 = assertSuccess(await POST(dataGet), _);
+				assert(Object.entries(result3).every(([key, value]) => value === false || key === 'userName'));
 			});
 		}
 
@@ -496,16 +493,13 @@ async function test() {
 				const data = { type, userToken, idCard, reason: '我要抱猫猫！' };
 				let result = await POST(data);
 				if (result.status === 0) {
-					assert.equal(result.message, 1);
+					assert.eq(result.message, 1);
 					result = await POST(data);
 				}
-				assert.equal(result.status, -1);
-				// assert(result.message.includes('duplicate'));
+				assertError(result, _);
 
 				data.reason = '我还要抱宽宽！';
-				result = await POST(data);
-				assert.equal(result.status, -1);
-				// assert(result.message.includes('duplicate'));
+				assertError(await POST(data), _);
 			});
 
 			// 查询申诉
@@ -519,11 +513,10 @@ async function test() {
 					permission: { userName: 'cat', viewAppeals: true }
 				}));
 
-				const result1 = await POST(data);
-				assert.equal(result1.status, 0);
-				assert.equal(result1.message.idCard, idCard);
-				assert.equal(result1.message.reason, '我要抱猫猫！');
-				assert.equal(typeof result1.message.time, 'number');
+				const result1 = assertSuccess(await POST(data), _);
+				assert.eq(result1.idCard, idCard);
+				assert.eq(result1.reason, '我要抱猫猫！');
+				assertTime(result1.time);
 
 				data.idCard = hzkIdCard;
 				assertSuccess(await POST(data), null);
@@ -555,16 +548,13 @@ async function test() {
 				const data = { type, userToken, idCard, reason: '猫猫抱起来舒服！' };
 				let result = await POST(data);
 				if (result.status === 0) {
-					assert.equal(result.message, 1);
+					assert.eq(result.message, 1);
 					result = await POST(data);
 				}
-				assert.equal(result.status, -1);
-				// assert(result.message.includes('duplicate'));
+				assertError(result, _);
 
 				data.reason = '宽宽抱起来不舒服！';
-				result = await POST(data);
-				assert.equal(result.status, -1);
-				// assert(result.message.includes('duplicate'));
+				assertError(await POST(data), _);
 			});
 		}
 
@@ -579,25 +569,21 @@ async function test() {
 				data.reason = '有权限的猫猫！';
 				assertSuccess(await POST(data), 1);
 
-				const result = await POST({ type: 'QueryAppealMessage', userToken: rootToken, idCard: hzkIdCard });
+				const result = assertSuccess(
+					await POST({ type: 'QueryAppealMessage', userToken: rootToken, idCard: hzkIdCard }), _
+				);
 
-				assert.equal(result.status, 0);
-				assert.equal(result.message.idCard, hzkIdCard);
-				assert.equal(result.message.reason, '有权限的猫猫！');
-				assert.equal(typeof result.message.time, 'number');
+				assert.eq(result.idCard, hzkIdCard);
+				assert.eq(result.reason, '有权限的猫猫！');
+				assertTime(result.time);
 
 				assertSuccess(await POST({ type: 'ResolveAppealMessage', userToken: rootToken, idCard: hzkIdCard }));
 			});
 
 			// 权限查看
 			await startModule('UserFetchAllGrantedUsersMessage', async type => {
-				const result = await POST({ type, userToken: hzkToken });
-				assert.equal(result.status, 0);
-				assert(
-					Array.isArray(result.message) &&
-					result.message.length === 1 &&
-					result.message[0] === 'cat'
-				);
+				const data = { type, userToken: hzkToken };
+				assertSuccess(await POST(data), ['cat']);
 			});
 
 			// 权限撤销
@@ -608,12 +594,229 @@ async function test() {
 
 				assertError(await POST(data), `错误！无权限访问 (或不存在) 身份证号为 ${hzkIdCard} 的用户！`);
 
-				const result = await POST({ type: 'UserFetchAllGrantedUsersMessage', userToken: hzkToken });
-				assert.equal(result.status, 0);
-				assert(
-					Array.isArray(result.message) &&
-					result.message.length === 0
+				assertSuccess(await POST({ type: 'UserFetchAllGrantedUsersMessage', userToken: hzkToken }), []);
+			});
+		}
+
+		{ // 疫苗测试 (vaccine)
+			const
+				Tbegin = new Date('2020-1-1 00:00:00'), Tend = new Date(),
+				manufacture = '猫宽疫苗机构',
+				time1 = crypto.randomInt(Tbegin.getTime(), Tend.getTime()),
+				time2 = crypto.randomInt(Tbegin.getTime(), Tend.getTime());
+			let vaccines = [];
+			// 获取疫苗记录
+			await startModule('UserGetVaccineMessage', async type => {
+				const data = { type, userToken, idCard };
+				vaccines = assertSuccess(await POST(data), _);
+				assert(Array.isArray(vaccines));
+			});
+
+			vaccines.push(
+				{ idCard, manufacture: manufacture + ' A', time: time1, vaccineType: vaccines.length + 1 },
+				{ idCard, manufacture: manufacture + ' B', time: time2, vaccineType: vaccines.length + 2 },
+			);
+			// 添加疫苗
+			await startModule('UserAddVaccineMessage', async type => {
+				const data = { type, userToken, idCard };
+				assertSuccess(await POST({ ...data, manufacture: manufacture + ' A', time: time1 }));
+				assertSuccess(await POST({ ...data, manufacture: manufacture + ' B', time: time2 }));
+				assertSuccess(await POST({ type: 'UserGetVaccineMessage', userToken, idCard }), vaccines);
+			});
+		}
+
+		{ // 核酸测试 (nucleicAcidTest)
+			const name = randomString(20);
+			console.log(`\x1b[35m增加核酸测试点：\x1b[32m${name}\x1b[0m\n`);
+
+			const position = { approximatePlace: place, street: '猫街' };
+
+			// 增加核酸测试点
+			await startModule('AddNucleicAcidTestPointMessage', async type => {
+				const data = { type, userToken: rootToken, place: position, name };
+				assertError(
+					await POST({ ...data, name: '@<-这是非法字符' }),
+					'核酸测试点名称 @<-这是非法字符 不合法！'
 				);
+				assertSuccess(await POST(data));
+				assertError(await POST(data), _);
+			});
+
+			// 获取核酸测试点
+			await startModule('GetAllNucleicAcidTestPointMessage', async type => {
+				const data = { type };
+				const result = assertSuccess(await POST(data), _);
+				assert(result.some(w => eq(w, { place: position, name })));
+			});
+
+			// 预约核酸
+			await startModule('AppointNucleicAcidTestMessage', async type => {
+				const data = { type, userToken, idCard, testPlace: name };
+				assertError(
+					await POST({ ...data, testPlace: '这个地点应当不存在' }),
+					'核酸测试点 这个地点应当不存在 不存在！'
+				);
+				assertSuccess(await POST(data));
+				assertError(await POST(data), `错误！身份证号为 ${idCard} 的核酸预约已存在`)
+			});
+
+			// 查询核酸预约点排队人数
+			await startModule('QueryTestPointWaitingPersonMessage', async type => {
+				const data = { type, place: name };
+				assertSuccess(await POST(data), 1);
+			});
+
+			// 查询核酸预约点所有人
+			await startModule('AdminQueryTestPointWaitingPersonMessage', async type => {
+				const data = { type, userToken, place: name };
+				assertError(await POST(data), ERRORS.NO_PERMISSION);
+
+				data.userToken = rootToken;
+				const result = assertSuccess(await POST(data), _);
+				assert.eq(result.length, 1);
+				assert.eq(result[0].idCard, idCard);
+				assert.eq(result[0].testPlace, name);
+				assertTime(result[0].appointTime);
+			});
+
+			// 完成核酸
+			await startModule('FinishNucleicAcidTestMessage', async type => {
+				const data = { type, userToken, idCard, testPlace: name, nucleicResult: true };
+				assertError(await POST(data), ERRORS.NO_PERMISSION);
+
+				data.userToken = rootToken;
+				assertSuccess(await POST(data));
+				assertError(await POST(data), `错误！身份证号为 ${idCard} 的用户未进行预约`)
+			});
+
+			// 获取核酸测试结果
+			await startModule('GetNucleicAcidTestResultsMessage', async type => {
+				const data = { type, userToken, idCard };
+				const result = assertSuccess(await POST(data), _).filter(r => r.testPlace === name);
+				assert.eq(result.length, 1);
+				assert.eq(result[0].idCard, idCard);
+				assert.eq(result[0].result, true);
+				assertTime(result[0].time);
+			});
+		}
+
+		{ // 健康码颜色测试 (code.`UserGetColorMessage` / `AdminSetColorMessage`)
+			await startModule('UserGetColorMessage', async type => {
+				const
+					place2 = {province: 'A 省', city: 'B 市', county: 'C 区'},
+					makeHzk = { userToken: hzkToken, idCard: hzkIdCard },
+					dataGet = { type, userToken, idCard },
+					dataGetHzk = { ...dataGet, ...makeHzk },
+					dataSet = { type: 'AdminSetColorMessage', userToken: rootToken, idCard },
+					dataSetHzk = { ...dataSet, idCard: hzkIdCard },
+					traceAdd = { type: 'UserAddTraceMessage', userToken, idCard },
+					traceAddHzk = { ...traceAdd, ...makeHzk },
+					traceGet = { type: 'UserGetTraceMessage', userToken, idCard, startTime: 0, endTime: 1e18 },
+					traceGetHzk = { ...traceGet, ...makeHzk },
+					traceDelete = { type: 'UserDeleteTraceMessage', userToken, idCard },
+					traceDeleteHzk = { ...traceDelete, ...makeHzk },
+					ccAdd = { type: 'UserAddTraceWithPeopleMessage', userToken, idCard },
+					ccAddHzk = { ...ccAdd, ...makeHzk },
+					ccGet = { type: 'UserGetTraceWithPeopleMessage', userToken, idCard, startTime: 0, endTime: 1e18 },
+					ccGetHzk = { ...ccGet, ...makeHzk },
+					ccDelete = { type: 'UserDeleteTraceWithPeopleMessage', userToken, idCard },
+					ccDeleteHzk = { ...ccDelete, ...makeHzk },
+					dataRisk = { type: 'SetDangerousPlaceMessage', userToken: rootToken, place };
+				// 默认绿码
+				assertSuccess(await POST(dataGet), 0);
+				// 添加轨迹
+				assertSuccess(await POST({ ...traceAdd, trace: place }));
+				// 设置低风险区
+				assertSuccess(await POST({ ...dataRisk, level: 0 }));
+				// 仍为绿码
+				assertSuccess(await POST(dataGet), 0);
+				// 设置中风险区
+				assertSuccess(await POST({ ...dataRisk, level: 1 }));
+				// 为黄码
+				assertSuccess(await POST(dataGet), 2);
+				// 设置高风险区
+				assertSuccess(await POST({ ...dataRisk, level: 2 }));
+				// 为红码
+				assertSuccess(await POST(dataGet), 3);
+				// 设置中风险区
+				assertSuccess(await POST({ ...dataRisk, level: 1 }));
+				// 仍为红码
+				assertSuccess(await POST(dataGet), 3);
+				// 查询轨迹
+				const traces1 = assertSuccess(await POST(traceGet), _)[0];
+				// 移除轨迹
+				assertSuccess(await POST({ ...traceDelete, time: traces1.time }));
+				// 仍为红码
+				assertSuccess(await POST(dataGet), 3);
+				// 管理员赋绿码
+				assertSuccess(await POST({ ...dataSet, color: 0 }), 1);
+				// 为绿码
+				assertSuccess(await POST(dataGet), 0);
+				// 加回轨迹 (中风险)
+				assertSuccess(await POST({ ...traceAdd, trace: place }));
+				// 为黄码
+				assertSuccess(await POST(dataGet), 2);
+
+				// hzk 为绿码
+				assertSuccess(await POST(dataGetHzk), 0);
+				// hzk 增加密接
+				assertSuccess(await POST({ ...ccAddHzk, cc: 'cat' }));
+				// hzk 为弹窗
+				assertSuccess(await POST(dataGetHzk), 1);
+				// hzk 去中风险地区
+				assertSuccess(await POST({ ...traceAddHzk, trace: place }));
+				// hzk 为黄码
+				assertSuccess(await POST(dataGetHzk), 2);
+
+				// hzk 移除轨迹
+				const traces2 = assertSuccess(await POST(traceGetHzk), _)[0];
+				assertSuccess(await POST({ ...traceDeleteHzk, time: traces2.time }));
+				const traces3 = assertSuccess(await POST(ccGetHzk), _)[0];
+				assertSuccess(await POST({ ...ccDeleteHzk, time: traces3.time }));
+				// 管理员赋绿码
+				assertSuccess(await POST({ ...dataSetHzk, color: 0 }), 1);
+				// 为绿码
+				assertSuccess(await POST(dataGetHzk), 0);
+
+				// 添加轨迹
+				assertSuccess(await POST({ ...traceAdd, trace: place2 }));
+				// 为黄码
+				assertSuccess(await POST(dataGet), 2);
+				// 设置低风险地区
+				assertSuccess(await POST({ ...dataRisk, place: place2, level: 0 }));
+				// 为黄码
+				assertSuccess(await POST(dataGet), 2);
+				// 设置高风险地区
+				assertSuccess(await POST({ ...dataRisk, place: place2, level: 2 }));
+				// 为红码
+				assertSuccess(await POST(dataGet), 3);
+
+				// hzk 为绿码
+				assertSuccess(await POST(dataGetHzk), 0);
+				// hzk 增加密接
+				assertSuccess(await POST({ ...ccAddHzk, cc: 'cat' }));
+				// hzk 为黄码
+				assertSuccess(await POST(dataGetHzk), 2);
+
+				// 重置低风险
+				assertSuccess(await POST({ ...dataRisk, place: place2, level: 0 }));
+
+				// 移除轨迹
+				const traces4 = assertSuccess(await POST(traceGet), _);
+				assert.eq(traces4.length, 2);
+				assertSuccess(await POST({ ...traceDelete, time: traces4[0].time }));
+				assertSuccess(await POST({ ...traceDelete, time: traces4[1].time }));
+				const traces5 = assertSuccess(await POST(ccGetHzk), _);
+				assertSuccess(await POST({ ...ccDeleteHzk, time: traces5[0].time }));
+
+				// 管理员赋绿码
+				assertSuccess(await POST({ ...dataSet, color: 0 }), 1);
+				// 为绿码
+				assertSuccess(await POST(dataGet), 0);
+				// 管理员赋绿码
+				assertSuccess(await POST({ ...dataSetHzk, color: 0 }), 1);
+				// 为绿码
+				assertSuccess(await POST(dataGetHzk), 0);
 			});
 		}
 	} catch (e) {
@@ -627,9 +830,7 @@ test();
 
 await startModule('<message type>Message', async type => {
 	const data = { type, userToken, ... };
-	const result = await POST(data);
-	assert.equal(result.status, 0);
-	assert.equal(result.message, 1);
+	assertSuccess(await POST(data));
 });
 
 */

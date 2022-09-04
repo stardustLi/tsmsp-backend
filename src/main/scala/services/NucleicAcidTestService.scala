@@ -1,109 +1,117 @@
 package services
 
-import models.{UserNucleicAcidTest, NucleicAcidTestPoint, NucleicAcidTestAppoint, DetailedTrace}
-import models.fields.IDCard
+import com.typesafe.scalalogging.Logger
 import org.joda.time.DateTime
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.util.{Success, Try}
 import slick.jdbc.PostgresProfile.api._
-import tables.{UserNucleicAcidTestTableInstance, NucleicAcidTestPointTableInstance, NucleicAcidTestAppointTableInstance}
+
+import models.{DetailedTrace, NucleicAcidTestAppoint, NucleicAcidTestPoint, UserNucleicAcidTest}
+import models.fields.{IDCard, NucleicAcidTestPointName}
+import tables.{NucleicAcidTestAppointTableInstance, NucleicAcidTestPointTableInstance, UserNucleicAcidTestTableInstance}
 import utils.db.await
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.util.Try
-
 object NucleicAcidTestService {
-  def addNucleicAcidTest(userToken: String, idCard: IDCard, now: DateTime, result: Boolean): Try[Int] = Try {
-    await(
-      UserService.checkUserHasAccessByTokenAndIDCard(userToken, idCard, now).flatMap(
-        hasAccess => {
-          if (!hasAccess) throw exceptions.NoAccessOfIdCard(idCard)
-          UserNucleicAcidTestTableInstance.instance += UserNucleicAcidTest(idCard.toLowerCase(), now.getMillis, result)
-        }
-      ).transactionally
-    )
-  }
+  val LOGGER: Logger = Logger("NucleicAcidTestService")
 
-  def getNucleicAcidTests(userToken: String, idCard: IDCard, now: DateTime): Try[List[UserNucleicAcidTest]] = Try {
+  /******** 对外开放 API: 带 Try，带 await(*.transactionally) ********/
+  /** 增加核酸测试点 */
+  def addNucleicAcidTestPoint(userToken: String, place: DetailedTrace, name: NucleicAcidTestPointName, now: DateTime): Try[Int] = Try {
+    if (!name.isValid()) throw exceptions.NucleicAcidTestPointNameInvalid(name)
     await(
-      UserService.checkUserHasAccessByTokenAndIDCard(userToken, idCard, now).flatMap(
-        hasAccess => {
-          if (!hasAccess) throw exceptions.NoAccessOfIdCard(idCard)
-          UserNucleicAcidTestTableInstance
-            .filterByIDCard(idCard)
-            .result
-        }
-      ).transactionally
-    ).toList
-  }
-
-  def getPositiveTestPeople(result: Boolean): Try[List[UserNucleicAcidTest]] = Try {
-    await(
-      (
-        UserNucleicAcidTestTableInstance
-          .filterByResult(result)
-          .result
-      ).transactionally
-    ).toList
-  }
-
-  def addNucleicAcidTestPoint(userToken: String, place: DetailedTrace, now: DateTime): Try[Int] = Try {
-    await(//增加核酸点位
       (
         UserService.checkAdminPermission(userToken, _.manageNucleicAcidTestPoints, now) >>
-        (NucleicAcidTestPointTableInstance.instance += NucleicAcidTestPoint(place, 0))
+        (NucleicAcidTestPointTableInstance.instance += NucleicAcidTestPoint(place, name))
       ).transactionally
     )
   }
 
-  def queryWaitingPerson(place: DetailedTrace): Try[Option[Int]] = Try {
-    await(//查询核酸点排队人数
+  /** 获取所有核酸测试点 */
+  def getAllNucleicAcidTestPoints(): Try[List[NucleicAcidTestPoint]] = Try {
+    await(
       (
+        NucleicAcidTestPointTableInstance.instance.result
+      ).transactionally
+    ).toList
+  }
+
+  /** 预约核酸测试 */
+  def appointNucleicAcidTest(userToken: String, idCard: IDCard, testPlace: NucleicAcidTestPointName, now: DateTime): Try[Int] = Try {
+    await(
+      (
+        UserService.checkUserHasAccessByTokenAndIDCard(userToken, idCard, now) >>
         NucleicAcidTestPointTableInstance
-          .filterByPlace(place)
-          .map(nucleic_acid_test_point => nucleic_acid_test_point.waitingPerson)
+          .filterByName(testPlace)
+          .exists
           .result
-          .headOption
+      ).flatMap(
+        exist => {
+          if (!exist) throw exceptions.NucleicAcidTestPointNotExists(testPlace)
+          (
+            NucleicAcidTestAppointTableInstance.instance +=
+              NucleicAcidTestAppoint(idCard.toLowerCase(), testPlace, now.getMillis)
+          ).asTry
+        }
+      ).map(
+        {
+          case Success(1) => 1
+          case _ => throw exceptions.AppointAlreadyExists(idCard)
+        }
       ).transactionally
     )
   }
-/*
-  TODO: refactor
 
-  def appointNucleicAcidTest(idCard: IDCard, appointTime: Long, place: DetailedTrace): Try[Int] = Try {
-    if (await(NucleicAcidTestAppointTableInstance.filterByIDCard(idCard).exists.result)) throw exceptions.AppointAlreadyExists(idCard)
+  /** 完成核酸测试 */
+  def finishNucleicAcidTest(userToken: String, idCard: IDCard, testPlace: NucleicAcidTestPointName, nucleicResult: Boolean, now: DateTime): Try[Int] = Try {
     await(
-      NucleicAcidTestAppointTableInstance.instance += NucleicAcidTestAppoint(idCard.toLowerCase(), appointTime, place)
-    )
-    await(
-      NucleicAcidTestPointTableInstance
-        .filterByPlace(place)
-        .map(point => point.waitingPerson).result.headOption
-        .flatMap(value => {
-          NucleicAcidTestPointTableInstance
-            .filterByPlace(place)
-            .map(point => point.waitingPerson)
-            .update(value.get + 1)
-        })
-    )
-  }
-
-  def finishNucleicAcidTest(idCard: IDCard, place: DetailedTrace): Try[Int] = Try {
-    if (await(NucleicAcidTestAppointTableInstance.filterByIDCard(idCard).exists.result)) throw exceptions.NoAppoint(idCard)
-    await(
-      NucleicAcidTestAppointTableInstance
-        .filterByIDCard(idCard)
-        .delete
-    )
-    await(
-      NucleicAcidTestPointTableInstance
-        .filterByPlace(place)
-        .map(point => point.waitingPerson).result.headOption
-        .flatMap{ value =>
-          NucleicAcidTestPointTableInstance
-            .filterByPlace(place)
-            .map(point => point.waitingPerson)
-            .update(value.get - 1)
+      (
+        UserService.checkAdminPermission(userToken, _.finishNucleicAcidTest, now) >>
+        NucleicAcidTestAppointTableInstance
+          .filterByIDCard(idCard)
+          .delete
+      ).flatMap(
+        result => {
+          if (result != 1) throw exceptions.NoAppoint(idCard)
+          UserNucleicAcidTestTableInstance.instance +=
+            UserNucleicAcidTest(idCard, testPlace, now.getMillis, nucleicResult)
         }
+      ).transactionally
     )
   }
-*/
+
+  /** 查询核酸预约点排队人数 */
+  def queryWaitingPersonNumber(place: NucleicAcidTestPointName): Try[Int] = Try {
+    await(
+      (
+        NucleicAcidTestAppointTableInstance
+          .filterByPlace(place)
+          .length
+          .result
+      ).transactionally
+    )
+  }
+
+  /** 获取某个核酸预约点的所有预约 */
+  def queryWaitingPerson(userToken: String, place: NucleicAcidTestPointName, now: DateTime): Try[List[NucleicAcidTestAppoint]] = Try {
+    await(
+      (
+        UserService.checkAdminPermission(userToken, _.finishNucleicAcidTest, now) >>
+        NucleicAcidTestAppointTableInstance
+          .filterByPlace(place)
+          .result
+      ).transactionally
+    ).toList
+  }
+
+  /** 获取核酸测试结果 */
+  def getNucleicAcidTests(userToken: String, idCard: IDCard, now: DateTime): Try[List[UserNucleicAcidTest]] = Try {
+    await(
+      (
+        UserService.checkUserHasAccessByTokenAndIDCard(userToken, idCard, now) >>
+        UserNucleicAcidTestTableInstance
+          .filterByIDCard(idCard)
+          .result
+      ).transactionally
+    ).toList
+  }
 }
