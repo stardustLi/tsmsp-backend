@@ -7,8 +7,8 @@ import org.joda.time.DateTime
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.Try
 import slick.jdbc.PostgresProfile.api._
-import models.{Appeal, DangerousPlace, JingReport, Trace, UserColor}
-import models.fields.IDCard
+import models.{Appeal, DangerousPlace, JingReport, UserColor}
+import models.fields.{IDCard, TraceID}
 import tables.{DangerousPlaceTableInstance, JingReportTableInstance, UserAppealTableInstance, UserColorTableInstance}
 import utils.db.await
 
@@ -71,7 +71,7 @@ object CodeService {
   }
 
   /** 获取一个地区的风险程度 */
-  def dangerousQuery(place: Trace): Try[RiskLevel] = Try {
+  def dangerousQuery(place: TraceID): Try[RiskLevel] = Try {
     import models.types.CustomColumnTypes._
     await(
       (
@@ -84,7 +84,7 @@ object CodeService {
   }
 
   /** 更新一个地区的风险程度 */
-  def dangerousUpdate(userToken: String, place: Trace, level: RiskLevel, now: DateTime): Try[Int] = Try {
+  def dangerousUpdate(userToken: String, place: TraceID, level: RiskLevel, now: DateTime): Try[Int] = Try {
     await(
       (
         UserService.checkAdminPermission(userToken, _.setRiskAreas, now) >>
@@ -146,7 +146,7 @@ object CodeService {
     TraceService.getTraces(idCard, now.minusDays(14).getMillis, now.getMillis)
       .flatMap(
         userTraces => {
-          val traces = userTraces.map(trace => trace.trace).toList
+          val traces: List[TraceID] = userTraces.map(trace => trace.trace).toList
           getMostRiskLevel(traces)
         }
       ).map(
@@ -167,7 +167,7 @@ object CodeService {
     TraceService.getTracesWithPeople(idCard, now.minusDays(14).getMillis, now.getMillis)
       .flatMap(
         userTracesWithPeople => {
-          val people = userTracesWithPeople.map(trace => trace.CCIDCard).toList
+          val people: List[IDCard] = userTracesWithPeople.map(trace => trace.CCIDCard).toList
           getMostDangerousColor(people)
         }
       ).map(color => color.getOrElse(CodeColor.GREEN).next)
@@ -191,7 +191,7 @@ object CodeService {
    * @param places 地区列表
    * @return 最高的风险度
    */
-  def getMostRiskLevel(places: List[Trace]): DBIO[Option[RiskLevel]] = {
+  def getMostRiskLevel(places: List[TraceID]): DBIO[Option[RiskLevel]] = {
     import models.types.CustomColumnTypes._
     DangerousPlaceTableInstance.instance.filter(
       dangerousPlace => dangerousPlace.place.inSet(places)

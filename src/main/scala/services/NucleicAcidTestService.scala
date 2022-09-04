@@ -2,12 +2,12 @@ package services
 
 import com.typesafe.scalalogging.Logger
 import org.joda.time.DateTime
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.{Success, Try}
 import slick.jdbc.PostgresProfile.api._
-
-import models.{DetailedTrace, NucleicAcidTestAppoint, NucleicAcidTestPoint, UserNucleicAcidTest}
-import models.fields.{IDCard, NucleicAcidTestPointName}
+import models.{NucleicAcidTestAppoint, NucleicAcidTestPoint, UserNucleicAcidTest}
+import models.fields.{IDCard, NucleicAcidTestPointName, TraceID}
 import tables.{NucleicAcidTestAppointTableInstance, NucleicAcidTestPointTableInstance, UserNucleicAcidTestTableInstance}
 import utils.db.await
 
@@ -16,7 +16,7 @@ object NucleicAcidTestService {
 
   /******** 对外开放 API: 带 Try，带 await(*.transactionally) ********/
   /** 增加核酸测试点 */
-  def addNucleicAcidTestPoint(userToken: String, place: DetailedTrace, name: NucleicAcidTestPointName, now: DateTime): Try[Int] = Try {
+  def addNucleicAcidTestPoint(userToken: String, place: TraceID, name: NucleicAcidTestPointName, now: DateTime): Try[Int] = Try {
     if (!name.isValid()) throw exceptions.NucleicAcidTestPointNameInvalid(name)
     await(
       (

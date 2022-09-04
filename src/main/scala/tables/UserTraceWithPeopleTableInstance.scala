@@ -16,7 +16,7 @@ class UserTraceWithPeopleTable(tag: Tag) extends Table[UserTraceWithPeople](tag,
 }
 
 object UserTraceWithPeopleTableInstance {
-  val instance = TableQuery[UserTraceWithPeopleTable]
+  val instance: TableQuery[UserTraceWithPeopleTable] = TableQuery[UserTraceWithPeopleTable]
   await(instance.schema.createIfNotExists)
 
   def filterByIDCard(idCard: IDCard): Query[UserTraceWithPeopleTable, UserTraceWithPeople, Seq] =

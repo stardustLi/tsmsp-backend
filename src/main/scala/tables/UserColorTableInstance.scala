@@ -2,6 +2,7 @@ package tables
 
 import slick.jdbc.PostgresProfile.api._
 import slick.lifted.Tag
+
 import globals.GlobalVariables.mainSchema
 import models.UserColor
 import models.enums.CodeColor
@@ -16,7 +17,7 @@ class UserColorTable(tag: Tag) extends Table[UserColor](tag, mainSchema, "user_c
 }
 
 object UserColorTableInstance {
-  val instance = TableQuery[UserColorTable]
+  val instance: TableQuery[UserColorTable] = TableQuery[UserColorTable]
   await(instance.schema.createIfNotExists)
 
   def filterByIDCard(idCard: IDCard): Query[UserColorTable, UserColor, Seq] =

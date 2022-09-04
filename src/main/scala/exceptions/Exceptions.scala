@@ -53,3 +53,11 @@ case class AppointAlreadyExists(idCard: IDCard) extends Exception {
 case class NoAppoint(idCard: IDCard) extends Exception {
   override def getMessage: String = s"错误！身份证号为 ${idCard.value} 的用户未进行预约"
 }
+
+case class PlaceIsEmpty() extends Exception {
+  override def getMessage: String = s"地点层级结构是空的！"
+}
+
+case class PlaceTooLong() extends Exception {
+  override def getMessage: String = s"地点层级结构太长了！"
+}

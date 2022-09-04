@@ -1,8 +1,9 @@
 package models
 
 import models.enums.RiskLevel
+import models.fields.TraceID
 
 case class DangerousPlace (
-  place: Trace,
+  place: TraceID,
   level: RiskLevel
 )

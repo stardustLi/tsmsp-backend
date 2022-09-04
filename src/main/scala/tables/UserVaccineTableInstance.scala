@@ -17,7 +17,7 @@ class UserVaccineTable(tag: Tag) extends Table[UserVaccine](tag, mainSchema, "us
 }
 
 object UserVaccineTableInstance {
-  val instance = TableQuery[UserVaccineTable]
+  val instance: TableQuery[UserVaccineTable] = TableQuery[UserVaccineTable]
   await(instance.schema.createIfNotExists)
 
   def filterByIDCard(idCard: IDCard): Query[UserVaccineTable, UserVaccine, Seq] =

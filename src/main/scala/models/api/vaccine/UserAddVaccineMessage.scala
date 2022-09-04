@@ -1,10 +1,8 @@
 package models.api.vaccine
 
-import models.Trace
 import models.api.{HandleStatus, TSMSPMessage, TSMSPReply}
 import models.fields.IDCard
 import org.joda.time.DateTime
-import services.TraceService.addTrace
 import services.VaccineService.addVaccine
 
 import scala.util.Try

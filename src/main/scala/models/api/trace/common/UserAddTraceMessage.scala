@@ -1,15 +1,14 @@
 package models.api.trace.common
 
 import org.joda.time.DateTime
-import scala.util.Try
 
-import models.Trace
+import scala.util.Try
 import models.api.{HandleStatus, TSMSPMessage, TSMSPReply}
-import models.fields.IDCard
+import models.fields.{IDCard, TraceID}
 import services.TraceService.addTrace
 
-case class UserAddTraceMessage(userToken: String, idCard: IDCard, trace: Trace) extends TSMSPMessage {
+case class UserAddTraceMessage(userToken: String, idCard: IDCard, traceID: TraceID) extends TSMSPMessage {
   override def reaction(now: DateTime): Try[TSMSPReply] = Try {
-    TSMSPReply(HandleStatus.OK, addTrace(userToken, idCard, trace, now).get)
+    TSMSPReply(HandleStatus.OK, addTrace(userToken, idCard, traceID, now).get)
   }
 }

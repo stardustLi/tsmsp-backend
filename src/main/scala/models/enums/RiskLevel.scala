@@ -15,13 +15,13 @@ sealed abstract class RiskLevel(val value: Int) extends MappedTo[Int] {
 
 object RiskLevel {
   case object LOW extends RiskLevel(0) {
-    def color: CodeColor = CodeColor.GREEN
+    override def color: CodeColor = CodeColor.GREEN
   }
   case object MEDIUM extends RiskLevel(1) {
-    def color: CodeColor = CodeColor.YELLOW
+    override def color: CodeColor = CodeColor.YELLOW
   }
   case object HIGH extends RiskLevel(2) {
-    def color: CodeColor = CodeColor.RED
+    override def color: CodeColor = CodeColor.RED
   }
 
   def objectList: List[RiskLevel] = List(LOW, MEDIUM, HIGH)

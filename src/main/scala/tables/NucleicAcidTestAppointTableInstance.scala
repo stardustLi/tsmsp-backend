@@ -19,7 +19,7 @@ class NucleicAcidTestAppointTable(tag: Tag) extends Table[NucleicAcidTestAppoint
 }
 
 object NucleicAcidTestAppointTableInstance {
-  val instance = TableQuery[NucleicAcidTestAppointTable]
+  val instance: TableQuery[NucleicAcidTestAppointTable] = TableQuery[NucleicAcidTestAppointTable]
   Try(await(instance.schema.createIfNotExists))
 
   def filterByIDCard(idCard: IDCard): Query[NucleicAcidTestAppointTable, NucleicAcidTestAppoint, Seq] =

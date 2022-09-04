@@ -5,16 +5,8 @@ import slick.jdbc.JdbcType
 import slick.jdbc.PostgresProfile.api._
 
 import models.enums._
-import models.{DetailedTrace, Trace}
-import utils.io
 
 object CustomColumnTypes {
-  implicit val traceConverter: JdbcType[Trace] with BaseTypedType[Trace] =
-    MappedColumnType.base[Trace, String](
-      trace => io.serialize(trace).get,
-      json => io.deserialize[Trace](json).get
-    )
-
   implicit val riskLevelConverter: JdbcType[RiskLevel] with BaseTypedType[RiskLevel] =
     MappedColumnType.base[RiskLevel, Int](
       riskLevel => riskLevel.value,
@@ -31,11 +23,5 @@ object CustomColumnTypes {
     MappedColumnType.base[TraceLevel, Int](
       traceLevel => traceLevel.value,
       enum => TraceLevel.getType(enum)
-    )
-
-  implicit val detailedTraceConverter: JdbcType[DetailedTrace] with BaseTypedType[DetailedTrace] =
-    MappedColumnType.base[DetailedTrace, String](
-      detailedTrace => io.serialize(detailedTrace).get,
-      json => io.deserialize[DetailedTrace](json).get
     )
 }
