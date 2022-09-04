@@ -152,7 +152,7 @@ object CodeService {
       ).map(
         {
           case Some(riskLevel) => riskLevel.color
-          case None => CodeColor.GREEN
+          case _ => CodeColor.GREEN
         }
       )
 

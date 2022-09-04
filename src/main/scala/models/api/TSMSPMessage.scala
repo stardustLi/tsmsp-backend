@@ -60,6 +60,7 @@ import models.types.JacksonSerializable
     new JsonSubTypes.Type(value = classOf[UserGetVaccineMessage], name = "UserGetVaccineMessage"),
     // nucleicAcidTest
     new JsonSubTypes.Type(value = classOf[AddNucleicAcidTestPointMessage], name = "AddNucleicAcidTestPointMessage"),
+    new JsonSubTypes.Type(value = classOf[AdminQueryTestPointWaitingPersonMessage], name = "AdminQueryTestPointWaitingPersonMessage"),
     new JsonSubTypes.Type(value = classOf[AppointNucleicAcidTestMessage], name = "AppointNucleicAcidTestMessage"),
     new JsonSubTypes.Type(value = classOf[FinishNucleicAcidTestMessage], name = "FinishNucleicAcidTestMessage"),
     new JsonSubTypes.Type(value = classOf[GetAllNucleicAcidTestPointMessage], name = "GetAllNucleicAcidTestPointMessage"),

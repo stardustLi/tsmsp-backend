@@ -3,7 +3,7 @@ package services
 import com.typesafe.scalalogging.Logger
 import org.joda.time.DateTime
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.util.Try
+import scala.util.{Success, Try}
 import slick.jdbc.PostgresProfile.api._
 
 import models.{DetailedTrace, NucleicAcidTestAppoint, NucleicAcidTestPoint, UserNucleicAcidTest}
@@ -40,20 +40,22 @@ object NucleicAcidTestService {
     await(
       (
         UserService.checkUserHasAccessByTokenAndIDCard(userToken, idCard, now) >>
-        NucleicAcidTestAppointTableInstance
-          .filterByPlace(testPlace)
+        NucleicAcidTestPointTableInstance
+          .filterByName(testPlace)
           .exists
           .result
       ).flatMap(
         exist => {
           if (!exist) throw exceptions.NucleicAcidTestPointNotExists(testPlace)
-          NucleicAcidTestAppointTableInstance.instance +=
-            NucleicAcidTestAppoint(idCard.toLowerCase(), testPlace, now.getMillis)
+          (
+            NucleicAcidTestAppointTableInstance.instance +=
+              NucleicAcidTestAppoint(idCard.toLowerCase(), testPlace, now.getMillis)
+          ).asTry
         }
       ).map(
-        result => {
-          if (result != 1) throw exceptions.AppointAlreadyExists(idCard)
-          result
+        {
+          case Success(1) => 1
+          case _ => throw exceptions.AppointAlreadyExists(idCard)
         }
       ).transactionally
     )
@@ -78,7 +80,7 @@ object NucleicAcidTestService {
   }
 
   /** 查询核酸预约点排队人数 */
-  def queryWaitingPerson(place: NucleicAcidTestPointName): Try[Int] = Try {
+  def queryWaitingPersonNumber(place: NucleicAcidTestPointName): Try[Int] = Try {
     await(
       (
         NucleicAcidTestAppointTableInstance
@@ -87,6 +89,18 @@ object NucleicAcidTestService {
           .result
       ).transactionally
     )
+  }
+
+  /** 获取某个核酸预约点的所有预约 */
+  def queryWaitingPerson(userToken: String, place: NucleicAcidTestPointName, now: DateTime): Try[List[NucleicAcidTestAppoint]] = Try {
+    await(
+      (
+        UserService.checkAdminPermission(userToken, _.finishNucleicAcidTest, now) >>
+        NucleicAcidTestAppointTableInstance
+          .filterByPlace(place)
+          .result
+      ).transactionally
+    ).toList
   }
 
   /** 获取核酸测试结果 */

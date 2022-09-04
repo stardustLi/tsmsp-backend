@@ -10,9 +10,10 @@ import utils.db.await
 
 class NucleicAcidTestAppointTable(tag: Tag) extends Table[NucleicAcidTestAppoint](tag, mainSchema, "nucleic_acid_test_appoint") {
   import models.types.CustomColumnTypes._
-  def idCard      = column[IDCard]("id_card", O.PrimaryKey)
-  def testPlace   = column[NucleicAcidTestPointName]("test_place", O.PrimaryKey)
+  def idCard      = column[IDCard]("id_card")
+  def testPlace   = column[NucleicAcidTestPointName]("test_place")
   def appointTime = column[Long]("appoint_time")
+  def pK          = primaryKey("nucleic_acid_test_appoint_pk", (idCard, testPlace))
   def *           = (idCard, testPlace, appointTime).mapTo[NucleicAcidTestAppoint]
 }
 

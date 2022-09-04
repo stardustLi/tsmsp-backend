@@ -243,9 +243,8 @@ object UserService {
         UserAdminPermissionTableInstance.filterByUserName(userName).result.headOption
     ).map(
       {
-        case None => throw exceptions.NoPermission()
-        case Some(permission) =>
-          if (!predicate(permission)) throw exceptions.NoPermission()
+        case Some(permission) if predicate(permission) => Unit
+        case _ => throw exceptions.NoPermission()
       }
     )
 

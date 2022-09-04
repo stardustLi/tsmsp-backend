@@ -39,11 +39,11 @@ case class NoPermission() extends Exception {
 }
 
 case class NucleicAcidTestPointNameInvalid(name: NucleicAcidTestPointName) extends Exception {
-  override def getMessage: String = s"核酸测试点名称 ${name} 不合法！"
+  override def getMessage: String = s"核酸测试点名称 ${name.value} 不合法！"
 }
 
 case class NucleicAcidTestPointNotExists(name: NucleicAcidTestPointName) extends Exception {
-  override def getMessage: String = s"核酸测试点 ${name} 不存在！"
+  override def getMessage: String = s"核酸测试点 ${name.value} 不存在！"
 }
 
 case class AppointAlreadyExists(idCard: IDCard) extends Exception {

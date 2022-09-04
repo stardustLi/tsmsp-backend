@@ -35,7 +35,7 @@ object CustomColumnTypes {
 
   implicit val detailedTraceConverter: JdbcType[DetailedTrace] with BaseTypedType[DetailedTrace] =
     MappedColumnType.base[DetailedTrace, String](
-      detailed_Trace => io.serialize(detailed_Trace).get,
+      detailedTrace => io.serialize(detailedTrace).get,
       json => io.deserialize[DetailedTrace](json).get
     )
 }
