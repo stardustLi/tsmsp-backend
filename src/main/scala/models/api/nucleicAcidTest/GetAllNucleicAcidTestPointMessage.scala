@@ -1,10 +1,10 @@
 package models.api.nucleicAcidTest
 
-import models.api.{HandleStatus, TSMSPMessage, TSMSPReply}
 import org.joda.time.DateTime
-import services.NucleicAcidTestService.getAllNucleicAcidTestPoints
-
 import scala.util.Try
+
+import models.api.{HandleStatus, TSMSPMessage, TSMSPReply}
+import services.NucleicAcidTestService.getAllNucleicAcidTestPoints
 
 case class GetAllNucleicAcidTestPointMessage() extends TSMSPMessage {
   override def reaction(now: DateTime): Try[TSMSPReply] = Try {

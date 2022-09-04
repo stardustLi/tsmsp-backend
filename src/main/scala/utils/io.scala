@@ -5,9 +5,7 @@ import akka.http.scaladsl.model.{HttpResponse, StatusCodes}
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 
-import java.io.File
 import scala.reflect.ClassTag
-import scala.swing.Dialog
 import scala.util.Try
 
 object io {
@@ -27,45 +25,6 @@ object io {
   /* 逆序列化 */
   def deserialize[T](bytes: String)(implicit tag: ClassTag[T]): Try[T] = Try {
     objectMapper.readValue(bytes.getBytes(), tag.runtimeClass).asInstanceOf[T]
-  }
-
-  def toObject[T: ClassTag](inputString: Option[String]): Try[Option[T]] = Try {
-    inputString.map(io.deserialize[T](_).get)
-  }
-
-  /* 删除文件夹 */
-  def recursiveDelete(curFile: File): Unit = {
-    if (curFile.isDirectory)
-      curFile.listFiles().foreach(recursiveDelete)
-    curFile.delete()
-  }
-
-  /* 强制删除文件 */
-  def deleteFile(fileName: String): Boolean = {
-    val file = new File(fileName)
-    if (file.exists())
-      try {
-        var deleteResult: Boolean = false
-        var tryCount = 0
-        while (!deleteResult && tryCount < 10) {
-          System.gc()
-          deleteResult = file.delete()
-          tryCount += 1
-        }
-        if (deleteResult)
-          return true
-        else Dialog.showMessage(null, "错误：删除文件失败！")
-      } catch {
-        case e: Exception =>
-          Dialog.showMessage(null, "错误：" + e.printStackTrace())
-      }
-    false
-  }
-
-  /* 检查 folder 是否存在 */
-  def checkFolder(folderName: String): Unit = {
-    val path = new File(folderName)
-    if (!path.exists()) path.mkdirs()
   }
 
   def fromObject(success: Boolean, reply: Object): HttpResponse = HttpResponse(

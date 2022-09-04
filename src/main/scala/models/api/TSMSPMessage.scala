@@ -2,8 +2,8 @@ package models.api
 
 import com.fasterxml.jackson.annotation.{JsonSubTypes, JsonTypeInfo}
 import org.joda.time.DateTime
-
 import scala.util.{Failure, Success, Try}
+
 import models.api.code._
 import models.api.code.appeal._
 import models.api.nucleicAcidTest._

@@ -1,8 +1,8 @@
 package models.api.trace.common
 
 import org.joda.time.DateTime
-
 import scala.util.Try
+
 import models.api.{HandleStatus, TSMSPMessage, TSMSPReply}
 import models.fields.{IDCard, TraceID}
 import services.TraceService.addTrace

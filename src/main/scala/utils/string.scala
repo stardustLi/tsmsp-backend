@@ -1,7 +1,5 @@
 package utils
 
-import org.joda.time.DateTime
-
 import scala.collection.mutable
 import util.Random
 
