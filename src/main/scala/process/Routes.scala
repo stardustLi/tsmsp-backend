@@ -10,7 +10,6 @@ import akka.http.scaladsl.server.Route
 import ch.megard.akka.http.cors.scaladsl.CorsDirectives.cors
 import ch.megard.akka.http.cors.scaladsl.settings.CorsSettings
 import com.typesafe.scalalogging.Logger
-import org.joda.time.DateTime
 
 import scala.util.{Failure, Try}
 
@@ -18,7 +17,7 @@ import scala.util.{Failure, Try}
 import scala.util.Success
 
 class Routes()(implicit val system: ActorSystem[_]) {
-  val LOGGER = Logger("TSMSP-Portal-Route")
+  val LOGGER: Logger = Logger("TSMSP-Portal-Route")
 
   val settings: CorsSettings.Default = CorsSettings.defaultSettings.copy(
     allowedOrigins = HttpOriginRange.* // * refers to all

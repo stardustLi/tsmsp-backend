@@ -1,3 +1,6 @@
+[submodule "src/main/scala/utils"]
+	path = src/main/scala/utils
+	url = git@git.tsinghua.edu.cn:cat-wide-healthy-manager/microservices/utils.git
 [submodule "microservices/user"]
 	path = microservices/user
 	url = git@git.tsinghua.edu.cn:cat-wide-healthy-manager/microservices/user.git
