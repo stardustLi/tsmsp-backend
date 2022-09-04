@@ -15,7 +15,7 @@ class UserOthersQueryTable(tag: Tag) extends Table[UserOthersQuery](tag, mainSch
 }
 
 object UserOthersQueryTableInstance {
-  val instance = TableQuery[UserOthersQueryTable]
+  val instance: TableQuery[UserOthersQueryTable] = TableQuery[UserOthersQueryTable]
   await(instance.schema.createIfNotExists)
 
   def filterByIDCard(idCardOthers: IDCard): Query[UserOthersQueryTable, UserOthersQuery, Seq] =

@@ -8,29 +8,29 @@ import com.fasterxml.jackson.databind.ser.std.StdSerializer
 import slick.lifted.MappedTo
 
 @JsonSerialize(using = classOf[CodeColorSerializer])
-@JsonDeserialize(using = classOf[CodeColorSerializerDeserializer])
+@JsonDeserialize(using = classOf[CodeColorDeserializer])
 sealed abstract class CodeColor(val value: Int) extends MappedTo[Int] {
   def next: CodeColor
 }
 
 object CodeColor {
   case object GREEN extends CodeColor(0) {
-    def next: CodeColor = GREEN
+    override def next: CodeColor = GREEN
   }
   case object ALERT extends CodeColor(1) {
-    def next: CodeColor = GREEN
+    override def next: CodeColor = GREEN
   }
   case object YELLOW extends CodeColor(2) {
-    def next: CodeColor = ALERT
+    override def next: CodeColor = ALERT
   }
   case object RED extends CodeColor(3) {
-    def next: CodeColor = YELLOW
+    override def next: CodeColor = YELLOW
   }
 
   def objectList: List[CodeColor] = List(GREEN, ALERT, YELLOW, RED)
   def getType(value: Int): CodeColor = objectList.filter(level => level.value == value).head
 
-  def max(color1: CodeColor, color2: CodeColor) = getType(color1.value max color2.value)
+  def max(color1: CodeColor, color2: CodeColor): CodeColor = getType(color1.value max color2.value)
 }
 
 class CodeColorSerializer extends StdSerializer[CodeColor](classOf[CodeColor]) {
@@ -38,7 +38,7 @@ class CodeColorSerializer extends StdSerializer[CodeColor](classOf[CodeColor]) {
     gen.writeNumber(CodeColor.value)
 }
 
-class CodeColorSerializerDeserializer extends StdDeserializer[CodeColor](classOf[CodeColor]) {
+class CodeColorDeserializer extends StdDeserializer[CodeColor](classOf[CodeColor]) {
   override def deserialize(p: JsonParser, ctx: DeserializationContext): CodeColor =
     CodeColor.getType(p.getIntValue)
 }

@@ -5,24 +5,23 @@ import slick.lifted.Tag
 
 import globals.GlobalVariables.mainSchema
 import models.enums.RiskLevel
-import models.{DangerousPlace, Trace}
+import models.fields.TraceID
+import models.DangerousPlace
 import utils.db.await
 
 class DangerousPlaceTable(tag: Tag) extends Table[DangerousPlace](tag, mainSchema, "dangerous_place") {
   import models.types.CustomColumnTypes._
-  def place = column[Trace]("place", O.PrimaryKey)
+  def place = column[TraceID]("place", O.PrimaryKey)
   def level = column[RiskLevel]("level")
   def *     = (place, level).mapTo[DangerousPlace]
 }
 
 object DangerousPlaceTableInstance {
-  val instance = TableQuery[DangerousPlaceTable]
+  val instance: TableQuery[DangerousPlaceTable] = TableQuery[DangerousPlaceTable]
   await(instance.schema.createIfNotExists)
 
-  def filterByPlace(place: Trace): Query[DangerousPlaceTable, DangerousPlace, Seq] = {
-    import models.types.CustomColumnTypes._
+  def filterByPlace(place: TraceID): Query[DangerousPlaceTable, DangerousPlace, Seq] =
     instance.filter(dangerousPlace => dangerousPlace.place === place)
-  }
 
   def filterByRiskLevel(level: RiskLevel): Query[DangerousPlaceTable, DangerousPlace, Seq] = {
     import models.types.CustomColumnTypes._

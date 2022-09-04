@@ -2,6 +2,7 @@ package tables
 
 import slick.jdbc.PostgresProfile.api._
 import slick.lifted.Tag
+
 import globals.GlobalVariables.mainSchema
 import models.Appeal
 import models.fields.IDCard
@@ -15,7 +16,7 @@ class UserAppealTable(tag: Tag) extends Table[Appeal](tag, mainSchema, "user_app
 }
 
 object UserAppealTableInstance {
-  val instance = TableQuery[UserAppealTable]
+  val instance: TableQuery[UserAppealTable] = TableQuery[UserAppealTable]
   await(instance.schema.createIfNotExists)
 
   def filterByIdCard(idCard: IDCard): Query[UserAppealTable, Appeal, Seq] =

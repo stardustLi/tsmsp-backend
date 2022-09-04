@@ -11,6 +11,7 @@ import utils.db.await
 class UserAdminPermissionTable(tag: Tag) extends Table[UserAdminPermission](tag, mainSchema, "user_admin_permission") {
   def userName                    = column[UserName]("user_name", O.PrimaryKey)
   def admin                       = column[Boolean]("admin")
+  def createPlace                 = column[Boolean]("create_place")
   def readTraceId                 = column[Boolean]("read_trace_id")
   def viewAppeals                 = column[Boolean]("view_appeals")
   def setRiskAreas                = column[Boolean]("set_risk_areas")
@@ -21,6 +22,7 @@ class UserAdminPermissionTable(tag: Tag) extends Table[UserAdminPermission](tag,
   def * = (
     userName,
     admin,
+    createPlace,
     readTraceId,
     viewAppeals,
     setRiskAreas,
@@ -32,7 +34,7 @@ class UserAdminPermissionTable(tag: Tag) extends Table[UserAdminPermission](tag,
 }
 
 object UserAdminPermissionTableInstance {
-  val instance = TableQuery[UserAdminPermissionTable]
+  val instance: TableQuery[UserAdminPermissionTable] = TableQuery[UserAdminPermissionTable]
   await(instance.schema.createIfNotExists)
 
   def filterByUserName(userName: UserName): Query[UserAdminPermissionTable, UserAdminPermission, Seq] =
@@ -41,6 +43,7 @@ object UserAdminPermissionTableInstance {
   def all(userName: UserName): UserAdminPermission = UserAdminPermission(
     userName,
     admin = true,
+    createPlace = true,
     readTraceId = true,
     viewAppeals = true,
     setRiskAreas = true,

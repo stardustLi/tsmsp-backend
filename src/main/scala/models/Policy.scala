@@ -1,6 +1,8 @@
 package models
 
+import models.fields.TraceID
+
 case class Policy(
-  place: Trace,
+  place: TraceID,
   contents: String
 )

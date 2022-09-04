@@ -16,7 +16,7 @@ class UserNucleicAcidTestTable(tag: Tag) extends Table[UserNucleicAcidTest](tag,
 }
 
 object UserNucleicAcidTestTableInstance {
-  val instance = TableQuery[UserNucleicAcidTestTable]
+  val instance: TableQuery[UserNucleicAcidTestTable] = TableQuery[UserNucleicAcidTestTable]
   await(instance.schema.createIfNotExists)
 
   def filterByIDCard(idCard: IDCard): Query[UserNucleicAcidTestTable, UserNucleicAcidTest, Seq] =

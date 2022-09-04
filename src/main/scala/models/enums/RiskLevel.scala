@@ -8,20 +8,20 @@ import com.fasterxml.jackson.databind.ser.std.StdSerializer
 import slick.lifted.MappedTo
 
 @JsonSerialize(using = classOf[RiskLevelSerializer])
-@JsonDeserialize(using = classOf[RiskLevelSerializerDeserializer])
+@JsonDeserialize(using = classOf[RiskLevelDeserializer])
 sealed abstract class RiskLevel(val value: Int) extends MappedTo[Int] {
   def color: CodeColor
 }
 
 object RiskLevel {
   case object LOW extends RiskLevel(0) {
-    def color: CodeColor = CodeColor.GREEN
+    override def color: CodeColor = CodeColor.GREEN
   }
   case object MEDIUM extends RiskLevel(1) {
-    def color: CodeColor = CodeColor.YELLOW
+    override def color: CodeColor = CodeColor.YELLOW
   }
   case object HIGH extends RiskLevel(2) {
-    def color: CodeColor = CodeColor.RED
+    override def color: CodeColor = CodeColor.RED
   }
 
   def objectList: List[RiskLevel] = List(LOW, MEDIUM, HIGH)
@@ -33,7 +33,7 @@ class RiskLevelSerializer extends StdSerializer[RiskLevel](classOf[RiskLevel]) {
     gen.writeNumber(riskLevel.value)
 }
 
-class RiskLevelSerializerDeserializer extends StdDeserializer[RiskLevel](classOf[RiskLevel]) {
+class RiskLevelDeserializer extends StdDeserializer[RiskLevel](classOf[RiskLevel]) {
   override def deserialize(p: JsonParser, ctx: DeserializationContext): RiskLevel =
     RiskLevel.getType(p.getIntValue)
 }

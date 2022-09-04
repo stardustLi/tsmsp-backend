@@ -1,10 +1,11 @@
 package models
 
 import models.enums.TraceLevel
+import models.fields.TraceID
 
 case class TraceTree(
-  id: Int,
+  id: TraceID,
   name: String,
   level: TraceLevel,
-  parentId: Int
+  parentID: TraceID
 )

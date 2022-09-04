@@ -16,7 +16,7 @@ class UserTokenTable(tag: Tag) extends Table[UserToken](tag, mainSchema, "user_t
 }
 
 object UserTokenTableInstance {
-  val instance = TableQuery[UserTokenTable]
+  val instance: TableQuery[UserTokenTable] = TableQuery[UserTokenTable]
   await(instance.schema.createIfNotExists)
 
   def filterByUserName(userName: UserName): Query[UserTokenTable, UserToken, Seq] =

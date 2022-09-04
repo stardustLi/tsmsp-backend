@@ -8,8 +8,9 @@ import models.api.code._
 import models.api.code.appeal._
 import models.api.nucleicAcidTest._
 import models.api.policy._
-import models.api.trace.withPeople._
+import models.api.trace._
 import models.api.trace.common._
+import models.api.trace.withPeople._
 import models.api.user.admin._
 import models.api.user.common._
 import models.api.user.permission._
@@ -31,6 +32,10 @@ import models.types.JacksonSerializable
     new JsonSubTypes.Type(value = classOf[UserFetchAllGrantedUsersMessage], name = "UserFetchAllGrantedUsersMessage"),
     new JsonSubTypes.Type(value = classOf[UserGrantPermissionMessage], name = "UserGrantPermissionMessage"),
     new JsonSubTypes.Type(value = classOf[UserRevokePermissionMessage], name = "UserRevokePermissionMessage"),
+    // trace
+    new JsonSubTypes.Type(value = classOf[CreatePlaceMessage], name = "CreatePlaceMessage"),
+    new JsonSubTypes.Type(value = classOf[GetPlaceInfoMessage], name = "GetPlaceInfoMessage"),
+    new JsonSubTypes.Type(value = classOf[GetPlaceSubordinatesMessage], name = "GetPlaceSubordinatesMessage"),
     // trace.common
     new JsonSubTypes.Type(value = classOf[UserAddTraceMessage], name = "UserAddTraceMessage"),
     new JsonSubTypes.Type(value = classOf[UserDeleteTraceMessage], name = "UserDeleteTraceMessage"),
