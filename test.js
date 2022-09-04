@@ -357,6 +357,7 @@ async function test() {
 				});
 			}
 
+			// 不存在以及不合法政策测试
 			console.log('\x1b[35m不存在以及不合法政策测试 ...\x1b[0m\n');
 			await startModule('PolicyQueryMessage', async type => {
 				const data = { type, place: { province: '不存在的', city: '坏了', county: '没了' } };
@@ -371,6 +372,7 @@ async function test() {
 				}
 			}, 0);
 
+			// 政策继承测试
 			console.log('\x1b[1;35m政策继承测试 ...\x1b[0m\n');
 			await startModule('PolicyUpdateMessage', async type => {
 				const data = { type, userToken: rootToken, place: { province: '卷猫', city: '', county: '' }, content: '猫宽学！' };
@@ -402,7 +404,7 @@ async function test() {
 			}, 0);
 		}
 
-		{ // 风险区测试 (code.`DangerousPlaceMessage / SetDangerousPlaceMessage`)
+		{ // 风险区测试 (code.`DangerousPlaceMessage` / `SetDangerousPlaceMessage`)
 			// 风险区修改和查询
 			for (let t = 0; t < 3; ++t) {
 				console.log(`\x1b[35m风险区修改第 \x1b[32m${t + 1}/3\x1b[35m 轮 ...\x1b[0m`);
@@ -695,6 +697,126 @@ async function test() {
 				assert.eq(result[0].idCard, idCard);
 				assert.eq(result[0].result, true);
 				assertTime(result[0].time);
+			});
+		}
+
+		{ // 健康码颜色测试 (code.`UserGetColorMessage` / `AdminSetColorMessage`)
+			await startModule('UserGetColorMessage', async type => {
+				const
+					place2 = {province: 'A 省', city: 'B 市', county: 'C 区'},
+					makeHzk = { userToken: hzkToken, idCard: hzkIdCard },
+					dataGet = { type, userToken, idCard },
+					dataGetHzk = { ...dataGet, ...makeHzk },
+					dataSet = { type: 'AdminSetColorMessage', userToken: rootToken, idCard },
+					dataSetHzk = { ...dataSet, idCard: hzkIdCard },
+					traceAdd = { type: 'UserAddTraceMessage', userToken, idCard },
+					traceAddHzk = { ...traceAdd, ...makeHzk },
+					traceGet = { type: 'UserGetTraceMessage', userToken, idCard, startTime: 0, endTime: 1e18 },
+					traceGetHzk = { ...traceGet, ...makeHzk },
+					traceDelete = { type: 'UserDeleteTraceMessage', userToken, idCard },
+					traceDeleteHzk = { ...traceDelete, ...makeHzk },
+					ccAdd = { type: 'UserAddTraceWithPeopleMessage', userToken, idCard },
+					ccAddHzk = { ...ccAdd, ...makeHzk },
+					ccGet = { type: 'UserGetTraceWithPeopleMessage', userToken, idCard, startTime: 0, endTime: 1e18 },
+					ccGetHzk = { ...ccGet, ...makeHzk },
+					ccDelete = { type: 'UserDeleteTraceWithPeopleMessage', userToken, idCard },
+					ccDeleteHzk = { ...ccDelete, ...makeHzk },
+					dataRisk = { type: 'SetDangerousPlaceMessage', userToken: rootToken, place };
+				// 默认绿码
+				assertSuccess(await POST(dataGet), 0);
+				// 添加轨迹
+				assertSuccess(await POST({ ...traceAdd, trace: place }));
+				// 设置低风险区
+				assertSuccess(await POST({ ...dataRisk, level: 0 }));
+				// 仍为绿码
+				assertSuccess(await POST(dataGet), 0);
+				// 设置中风险区
+				assertSuccess(await POST({ ...dataRisk, level: 1 }));
+				// 为黄码
+				assertSuccess(await POST(dataGet), 2);
+				// 设置高风险区
+				assertSuccess(await POST({ ...dataRisk, level: 2 }));
+				// 为红码
+				assertSuccess(await POST(dataGet), 3);
+				// 设置中风险区
+				assertSuccess(await POST({ ...dataRisk, level: 1 }));
+				// 仍为红码
+				assertSuccess(await POST(dataGet), 3);
+				// 查询轨迹
+				const traces1 = assertSuccess(await POST(traceGet), _)[0];
+				// 移除轨迹
+				assertSuccess(await POST({ ...traceDelete, time: traces1.time }));
+				// 仍为红码
+				assertSuccess(await POST(dataGet), 3);
+				// 管理员赋绿码
+				assertSuccess(await POST({ ...dataSet, color: 0 }), 1);
+				// 为绿码
+				assertSuccess(await POST(dataGet), 0);
+				// 加回轨迹 (中风险)
+				assertSuccess(await POST({ ...traceAdd, trace: place }));
+				// 为黄码
+				assertSuccess(await POST(dataGet), 2);
+
+				// hzk 为绿码
+				assertSuccess(await POST(dataGetHzk), 0);
+				// hzk 增加密接
+				assertSuccess(await POST({ ...ccAddHzk, cc: 'cat' }));
+				// hzk 为弹窗
+				assertSuccess(await POST(dataGetHzk), 1);
+				// hzk 去中风险地区
+				assertSuccess(await POST({ ...traceAddHzk, trace: place }));
+				// hzk 为黄码
+				assertSuccess(await POST(dataGetHzk), 2);
+
+				// hzk 移除轨迹
+				const traces2 = assertSuccess(await POST(traceGetHzk), _)[0];
+				assertSuccess(await POST({ ...traceDeleteHzk, time: traces2.time }));
+				const traces3 = assertSuccess(await POST(ccGetHzk), _)[0];
+				assertSuccess(await POST({ ...ccDeleteHzk, time: traces3.time }));
+				// 管理员赋绿码
+				assertSuccess(await POST({ ...dataSetHzk, color: 0 }), 1);
+				// 为绿码
+				assertSuccess(await POST(dataGetHzk), 0);
+
+				// 添加轨迹
+				assertSuccess(await POST({ ...traceAdd, trace: place2 }));
+				// 为黄码
+				assertSuccess(await POST(dataGet), 2);
+				// 设置低风险地区
+				assertSuccess(await POST({ ...dataRisk, place: place2, level: 0 }));
+				// 为黄码
+				assertSuccess(await POST(dataGet), 2);
+				// 设置高风险地区
+				assertSuccess(await POST({ ...dataRisk, place: place2, level: 2 }));
+				// 为红码
+				assertSuccess(await POST(dataGet), 3);
+
+				// hzk 为绿码
+				assertSuccess(await POST(dataGetHzk), 0);
+				// hzk 增加密接
+				assertSuccess(await POST({ ...ccAddHzk, cc: 'cat' }));
+				// hzk 为黄码
+				assertSuccess(await POST(dataGetHzk), 2);
+
+				// 重置低风险
+				assertSuccess(await POST({ ...dataRisk, place: place2, level: 0 }));
+
+				// 移除轨迹
+				const traces4 = assertSuccess(await POST(traceGet), _);
+				assert.eq(traces4.length, 2);
+				assertSuccess(await POST({ ...traceDelete, time: traces4[0].time }));
+				assertSuccess(await POST({ ...traceDelete, time: traces4[1].time }));
+				const traces5 = assertSuccess(await POST(ccGetHzk), _);
+				assertSuccess(await POST({ ...ccDeleteHzk, time: traces5[0].time }));
+
+				// 管理员赋绿码
+				assertSuccess(await POST({ ...dataSet, color: 0 }), 1);
+				// 为绿码
+				assertSuccess(await POST(dataGet), 0);
+				// 管理员赋绿码
+				assertSuccess(await POST({ ...dataSetHzk, color: 0 }), 1);
+				// 为绿码
+				assertSuccess(await POST(dataGetHzk), 0);
 			});
 		}
 	} catch (e) {

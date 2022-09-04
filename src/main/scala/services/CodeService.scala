@@ -7,7 +7,7 @@ import org.joda.time.DateTime
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.Try
 import slick.jdbc.PostgresProfile.api._
-import models.{Appeal, DangerousPlace, JingReport, Trace}
+import models.{Appeal, DangerousPlace, JingReport, Trace, UserColor}
 import models.fields.IDCard
 import tables.{DangerousPlaceTableInstance, JingReportTableInstance, UserAppealTableInstance, UserColorTableInstance}
 import utils.db.await
@@ -109,9 +109,9 @@ object CodeService {
         UserColorTableInstance
           .filterByIDCard(idCard)
           .map(userColor => userColor.color)
-          .result.head
+          .result.headOption
       ).map(
-        colors => CodeColor.max(colors._1, colors._2)
+        colors => CodeColor.max(colors._1, colors._2.getOrElse(CodeColor.GREEN))
       ).flatMap(
         color =>
           updateColor(idCard, color) >>
@@ -170,7 +170,7 @@ object CodeService {
           val people = userTracesWithPeople.map(trace => trace.CCIDCard).toList
           getMostDangerousColor(people)
         }
-      ).map(color => color.getOrElse(CodeColor.GREEN))
+      ).map(color => color.getOrElse(CodeColor.GREEN).next)
 
   /**
    * 获取 people 中最危险的码的颜色
@@ -207,10 +207,7 @@ object CodeService {
    * @return 1
    */
   def updateColor(idCard: IDCard, color: CodeColor): DBIO[Int] = {
-    import models.types.CustomColumnTypes._
-    UserColorTableInstance
-      .filterByIDCard(idCard)
-      .map(userColor => userColor.color)
-      .update(color)
+    UserColorTableInstance.instance
+      .insertOrUpdate(UserColor(idCard, color))
   }
 }

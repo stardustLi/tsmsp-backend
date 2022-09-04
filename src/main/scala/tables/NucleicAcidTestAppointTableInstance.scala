@@ -2,6 +2,7 @@ package tables
 
 import slick.jdbc.PostgresProfile.api._
 import slick.lifted.Tag
+import scala.util.Try
 
 import globals.GlobalVariables.mainSchema
 import models.fields.{IDCard, NucleicAcidTestPointName}
@@ -19,7 +20,7 @@ class NucleicAcidTestAppointTable(tag: Tag) extends Table[NucleicAcidTestAppoint
 
 object NucleicAcidTestAppointTableInstance {
   val instance = TableQuery[NucleicAcidTestAppointTable]
-  await(instance.schema.createIfNotExists)
+  Try(await(instance.schema.createIfNotExists))
 
   def filterByIDCard(idCard: IDCard): Query[NucleicAcidTestAppointTable, NucleicAcidTestAppoint, Seq] =
     instance.filter(appoint => appoint.idCard === idCard)
