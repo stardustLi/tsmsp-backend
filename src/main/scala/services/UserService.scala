@@ -2,13 +2,13 @@ package services
 
 import com.typesafe.scalalogging.Logger
 import org.joda.time.DateTime
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.util.Try
-import slick.jdbc.PostgresProfile.api._
 
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.util.{Failure, Success, Try}
+import slick.jdbc.PostgresProfile.api._
 import models.fields.{IDCard, Password, UserName}
-import models.{User, UserOthersQuery, UserAdminPermission, UserToken}
-import tables.{UserOthersQueryTableInstance, UserAdminPermissionTableInstance, UserTable, UserTableInstance, UserTokenTable, UserTokenTableInstance}
+import models.{User, UserAdminPermission, UserOthersQuery, UserToken}
+import tables.{UserAdminPermissionTableInstance, UserOthersQueryTableInstance, UserTable, UserTableInstance, UserTokenTable, UserTokenTableInstance}
 import utils.db.await
 import utils.string.randomToken
 
@@ -187,6 +187,25 @@ object UserService {
         }
       ).transactionally
     ).toList.map(userName => userName.value)
+  }
+
+  /**
+   * 检查用户是否有能力访问身份证号为 idCard 的人
+   *
+   * @param token  用户 token
+   * @param idCard 身份证号
+   * @return 成功返回 Unit，失败抛出错误
+   */
+  def apiCheckUserHasAccessByTokenAndIDCard(token: String, idCard: IDCard, now: DateTime): Try[Boolean] = Try {
+    Try {
+      await(
+        checkUserHasAccessByTokenAndIDCard(token, idCard, now).transactionally
+      )
+    } match {
+      case Success(_) => true
+      case Failure(_: exceptions.NoAccessOfIdCard) => false
+      case Failure(exc) => throw exc
+    }
   }
 
   /******** 内部 API ********/
