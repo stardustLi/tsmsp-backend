@@ -1,0 +1,10 @@
+{
+  "microServiceTokens": {
+    "code": "code",
+    "nucleicAcidTest": "nucleicAcidTest",
+    "policy": "policy",
+    "trace": "trace",
+    "user": "user",
+    "vaccine": "vaccine"
+  }
+}

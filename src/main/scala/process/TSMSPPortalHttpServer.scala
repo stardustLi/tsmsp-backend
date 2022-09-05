@@ -10,7 +10,7 @@ import java.net.InetSocketAddress
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
-import globals.GlobalVariables
+import globals.GlobalVariables.{listenAddress, listenPortal}
 
 object TSMSPPortalHttpServer {
   val LOGGER: Logger = Logger("HttpServer")
@@ -21,8 +21,7 @@ object TSMSPPortalHttpServer {
 
     val futureBinding: Future[Http.ServerBinding] =
       Http().newServerAt(
-        GlobalVariables.listenAddress,
-        GlobalVariables.listenPortal
+        listenAddress, listenPortal
       ).connectionSource().to(Sink.foreach {
         connection => {
           val remoteIP: String = connection.remoteAddress.getAddress.toString.replaceAll("/", "")

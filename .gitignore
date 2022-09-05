@@ -14,7 +14,8 @@ tree-object
 !project/Dependencies.scala
 !project/plugins.sbt
 *.xlsx
-#macOS
+
+# macOS
 .DS_Store
 *.icloud
 remote-version.txt
@@ -23,3 +24,6 @@ null/*
 .metals/
 .vscode/
 .bloop/
+
+# config
+config.json

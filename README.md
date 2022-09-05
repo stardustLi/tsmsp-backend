@@ -1,6 +1,8 @@
-## TSMSP-后端模板使用说明
+## TSMSP 后端使用说明
 
-先参考ppt完成环境搭建
+### 配置文件说明
+
+`config.json` 存储微服务的 token，使用前先将 `.config.json` 复制到 `config.json`。
 
 ### 后端模板文件结构
 > src
