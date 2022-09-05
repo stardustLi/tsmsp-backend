@@ -1,8 +1,5 @@
 package process
 
-import models.api.TSMSPMessage
-import utils.io.{deserialize, fromObject, fromString}
-import process.Server.{LOGGER => ServerLOGGER}
 import akka.actor.typed.ActorSystem
 import akka.http.scaladsl.model.headers.HttpOriginRange
 import akka.http.scaladsl.server.Directives._
@@ -10,11 +7,11 @@ import akka.http.scaladsl.server.Route
 import ch.megard.akka.http.cors.scaladsl.CorsDirectives.cors
 import ch.megard.akka.http.cors.scaladsl.settings.CorsSettings
 import com.typesafe.scalalogging.Logger
+import scala.util.{Failure, Success, Try}
 
-import scala.util.{Failure, Try}
-
-/* http 不同的路径用于处理不同的通信 */
-import scala.util.Success
+import api.TSMSPMessage
+import utils.io.{deserialize, fromObject, fromString}
+import process.Server.{LOGGER => ServerLOGGER}
 
 class Routes()(implicit val system: ActorSystem[_]) {
   val LOGGER: Logger = Logger("TSMSP-Portal-Route")
@@ -30,7 +27,7 @@ class Routes()(implicit val system: ActorSystem[_]) {
           entity(as[String])(bytes => {
             LOGGER.info("$ api got a post: " + bytes)
             Try {
-              val message = deserialize[TSMSPMessage](bytes).get
+              val message: TSMSPMessage = deserialize[TSMSPMessage](bytes).get
               message.handle()
             } match {
               case Success(value) =>
@@ -42,7 +39,7 @@ class Routes()(implicit val system: ActorSystem[_]) {
             }
           })
         )
-      },
+      }
     )
   }
 }

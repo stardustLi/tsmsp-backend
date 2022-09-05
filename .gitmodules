@@ -1,6 +1,24 @@
+[submodule "src/main/scala/models"]
+	path = src/main/scala/models
+	url = git@git.tsinghua.edu.cn:cat-wide-healthy-manager/microservices/models.git
 [submodule "src/main/scala/utils"]
 	path = src/main/scala/utils
 	url = git@git.tsinghua.edu.cn:cat-wide-healthy-manager/microservices/utils.git
+[submodule "microservices/code"]
+	path = microservices/code
+	url = git@git.tsinghua.edu.cn:cat-wide-healthy-manager/microservices/code.git
+[submodule "microservices/nucleic-acid-test"]
+	path = microservices/nucleic-acid-test
+	url = git@git.tsinghua.edu.cn:cat-wide-healthy-manager/microservices/nucleic-acid-test.git
+[submodule "microservices/policy"]
+	path = microservices/policy
+	url = git@git.tsinghua.edu.cn:cat-wide-healthy-manager/microservices/policy.git
+[submodule "microservices/trace"]
+	path = microservices/trace
+	url = git@git.tsinghua.edu.cn:cat-wide-healthy-manager/microservices/trace.git
 [submodule "microservices/user"]
 	path = microservices/user
 	url = git@git.tsinghua.edu.cn:cat-wide-healthy-manager/microservices/user.git
+[submodule "microservices/vaccine"]
+	path = microservices/vaccine
+	url = git@git.tsinghua.edu.cn:cat-wide-healthy-manager/microservices/vaccine.git
