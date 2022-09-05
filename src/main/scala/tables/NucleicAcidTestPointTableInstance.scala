@@ -19,4 +19,7 @@ object NucleicAcidTestPointTableInstance {
 
   def filterByName(name: NucleicAcidTestPointName): Query[NucleicAcidTestPointTable, NucleicAcidTestPoint, Seq] =
     instance.filter(point => point.name === name)
+
+  def filterByPlace(place: TraceID): Query[NucleicAcidTestPointTable, NucleicAcidTestPoint, Seq] =
+    instance.filter(point => point.place === place)
 }

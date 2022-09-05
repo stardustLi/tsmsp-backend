@@ -734,7 +734,7 @@ async function test() {
 
 			// 获取核酸测试点
 			await startModule('GetAllNucleicAcidTestPointMessage', async type => {
-				const data = { type };
+				const data = { type, place: 4 };
 				const result = success(await POST(data), _);
 				assert(result.some(w => eq(w, { place: 4, name })));
 			});

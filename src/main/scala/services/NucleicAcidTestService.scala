@@ -26,11 +26,11 @@ object NucleicAcidTestService {
     )
   }
 
-  /** 获取所有核酸测试点 */
-  def getAllNucleicAcidTestPoints(): Try[List[NucleicAcidTestPoint]] = Try {
+  /** 获取某个地区的所有核酸测试点 */
+  def getAllNucleicAcidTestPoints(place: TraceID): Try[List[NucleicAcidTestPoint]] = Try {
     await(
       (
-        NucleicAcidTestPointTableInstance.instance.result
+        NucleicAcidTestPointTableInstance.filterByPlace(place).result
       ).transactionally
     ).toList
   }
