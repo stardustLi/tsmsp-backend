@@ -25,7 +25,7 @@ object VaccineService {
   def addVaccine(userToken: String, idCard: IDCard, manufacture: String, time: Long, now: DateTime): Try[Int] = Try {
     await(
       (
-        UserService.checkUserHasAccessByTokenAndIDCard(userToken, idCard, now) >>
+        UserService.apiCheckUserHasAccessByTokenAndIDCard(userToken, idCard, now) >>
         UserVaccineTableInstance.filterByIDCard(idCard).length.result
       ).flatMap(count =>
         UserVaccineTableInstance.instance += UserVaccine(idCard.toLowerCase(), manufacture, time, count + 1)
@@ -41,7 +41,7 @@ object VaccineService {
   def getVaccines(userToken: String, idCard: IDCard, now: DateTime): Try[List[UserVaccine]] = Try {
     await(
       (
-        UserService.checkUserHasAccessByTokenAndIDCard(userToken, idCard, now) >>
+        UserService.apiCheckUserHasAccessByTokenAndIDCard(userToken, idCard, now) >>
         UserVaccineTableInstance
           .filterByIDCard(idCard)
           .sortBy(vaccine => vaccine.vaccineType)

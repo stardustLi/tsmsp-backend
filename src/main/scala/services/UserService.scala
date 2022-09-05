@@ -2,13 +2,13 @@ package services
 
 import com.typesafe.scalalogging.Logger
 import org.joda.time.DateTime
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.util.Try
-import slick.jdbc.PostgresProfile.api._
 
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.util.{Failure, Success, Try}
+import slick.jdbc.PostgresProfile.api._
 import models.fields.{IDCard, Password, UserName}
-import models.{User, UserOthersQuery, UserAdminPermission, UserToken}
-import tables.{UserOthersQueryTableInstance, UserAdminPermissionTableInstance, UserTable, UserTableInstance, UserTokenTable, UserTokenTableInstance}
+import models.{User, UserAdminPermission, UserOthersQuery, UserToken}
+import tables.{UserAdminPermissionTableInstance, UserOthersQueryTableInstance, UserTable, UserTableInstance, UserTokenTable, UserTokenTableInstance}
 import utils.db.await
 import utils.string.randomToken
 
@@ -72,7 +72,7 @@ object UserService {
    */
   def changePassword(token: String, newPassword: Password, now: DateTime): Try[String] = Try {
     await(
-      findUserByToken(token, now).flatMap(
+      apiFindUserByToken(token, now).flatMap(
         userName => {
           if (!newPassword.isValid()) throw exceptions.PasswordInvalid()
           (
@@ -93,7 +93,7 @@ object UserService {
    */
   def apiGetAdminPermission(token: String, now: DateTime): Try[Option[UserAdminPermission]] = Try {
     await(
-      findUserByToken(token, now).flatMap(
+      apiFindUserByToken(token, now).flatMap(
         userName =>
           UserAdminPermissionTableInstance.filterByUserName(userName)
             .result
@@ -122,7 +122,7 @@ object UserService {
    */
   def apiGetProfile(token: String, now: DateTime): Try[User] = Try {
     await(
-      findUserByToken(token, now).flatMap(getProfile).transactionally
+      apiFindUserByToken(token, now).flatMap(getProfile).transactionally
     )
   }
 
@@ -133,7 +133,7 @@ object UserService {
    */
   def grantPermission(token: String, trusted: UserName, now: DateTime): Try[Int] = Try {
     await(
-      findUserByToken(token, now).flatMap(
+      apiFindUserByToken(token, now).flatMap(
         userName =>
           UserTableInstance.filterByUserName(userName)
             .map(user => user.idCard)
@@ -153,7 +153,7 @@ object UserService {
    */
   def revokePermission(token: String, trusted: UserName, now: DateTime): Try[Int] = Try {
     await(
-      findUserByToken(token, now).flatMap(
+      apiFindUserByToken(token, now).flatMap(
         userName =>
           UserTableInstance.filterByUserName(userName)
             .map(user => user.idCard)
@@ -172,7 +172,7 @@ object UserService {
    */
   def fetchAllGrantedUsers(token: String, now: DateTime): Try[List[String]] = Try {
     await (
-      findUserByToken(token, now).flatMap(
+      apiFindUserByToken(token, now).flatMap(
         userName =>
           UserTableInstance.filterByUserName(userName)
             .map(user => user.idCard)
@@ -189,13 +189,32 @@ object UserService {
     ).toList.map(userName => userName.value)
   }
 
+  /**
+   * 检查用户是否有能力访问身份证号为 idCard 的人
+   *
+   * @param token  用户 token
+   * @param idCard 身份证号
+   * @return 成功返回 Unit，失败抛出错误
+   */
+  def checkUserHasAccessByTokenAndIDCard(token: String, idCard: IDCard, now: DateTime): Try[Boolean] = Try {
+    Try {
+      await(
+        apiCheckUserHasAccessByTokenAndIDCard(token, idCard, now).transactionally
+      )
+    } match {
+      case Success(_) => true
+      case Failure(_: exceptions.NoAccessOfIdCard) => false
+      case Failure(exc) => throw exc
+    }
+  }
+
   /******** 内部 API ********/
   /**
    * 根据 token 返回用户
    * @param token 用户 token
    * @return 对应用户
    */
-  def findUserByToken(token: String, now: DateTime): DBIO[UserName] =
+  def apiFindUserByToken(token: String, now: DateTime): DBIO[UserName] =
     UserTokenTableInstance.instance
       .filter(
         user => user.token === token && user.refreshTime >= now.minusHours(2).getMillis
@@ -213,8 +232,8 @@ object UserService {
    * @param idCard 身份证号
    * @return 成功返回 Unit，失败抛出错误
    */
-  def checkUserHasAccessByTokenAndIDCard(token: String, idCard: IDCard, now: DateTime): DBIO[Unit] =
-    findUserByToken(token, now)
+  def apiCheckUserHasAccessByTokenAndIDCard(token: String, idCard: IDCard, now: DateTime): DBIO[Unit] =
+    apiFindUserByToken(token, now)
       .flatMap(
         userName =>
           UserTableInstance.filterByUserIDCard(userName, idCard).exists.result zip
@@ -238,7 +257,7 @@ object UserService {
    * @return 成功返回 Unit，失败抛出错误
    */
   def checkAdminPermission(token: String, predicate: UserAdminPermission => Boolean, now: DateTime): DBIO[Unit] =
-    findUserByToken(token, now).flatMap(
+    apiFindUserByToken(token, now).flatMap(
       userName =>
         UserAdminPermissionTableInstance.filterByUserName(userName).result.headOption
     ).map(

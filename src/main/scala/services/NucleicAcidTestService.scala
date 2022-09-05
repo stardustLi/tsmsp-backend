@@ -39,7 +39,7 @@ object NucleicAcidTestService {
   def appointNucleicAcidTest(userToken: String, idCard: IDCard, testPlace: NucleicAcidTestPointName, now: DateTime): Try[Int] = Try {
     await(
       (
-        UserService.checkUserHasAccessByTokenAndIDCard(userToken, idCard, now) >>
+        UserService.apiCheckUserHasAccessByTokenAndIDCard(userToken, idCard, now) >>
         NucleicAcidTestPointTableInstance
           .filterByName(testPlace)
           .exists
@@ -107,7 +107,7 @@ object NucleicAcidTestService {
   def getNucleicAcidTests(userToken: String, idCard: IDCard, now: DateTime): Try[List[UserNucleicAcidTest]] = Try {
     await(
       (
-        UserService.checkUserHasAccessByTokenAndIDCard(userToken, idCard, now) >>
+        UserService.apiCheckUserHasAccessByTokenAndIDCard(userToken, idCard, now) >>
         UserNucleicAcidTestTableInstance
           .filterByIDCard(idCard)
           .result

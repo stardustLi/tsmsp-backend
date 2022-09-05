@@ -32,6 +32,7 @@ import models.types.JacksonSerializable
     new JsonSubTypes.Type(value = classOf[UserFetchAllGrantedUsersMessage], name = "UserFetchAllGrantedUsersMessage"),
     new JsonSubTypes.Type(value = classOf[UserGrantPermissionMessage], name = "UserGrantPermissionMessage"),
     new JsonSubTypes.Type(value = classOf[UserRevokePermissionMessage], name = "UserRevokePermissionMessage"),
+    new JsonSubTypes.Type(value = classOf[UserWhetherGrantedMessage], name = "UserWhetherGrantedMessage"),
     // trace
     new JsonSubTypes.Type(value = classOf[CreatePlaceMessage], name = "CreatePlaceMessage"),
     new JsonSubTypes.Type(value = classOf[GetPlaceInfoMessage], name = "GetPlaceInfoMessage"),

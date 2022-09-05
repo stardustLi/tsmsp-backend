@@ -20,7 +20,7 @@ object CodeService {
   def addAppeal(userToken: String, idCard: IDCard, reason: String, now: DateTime): Try[Int] = Try {
     await(
       (
-        UserService.checkUserHasAccessByTokenAndIDCard(userToken, idCard, now) >>
+        UserService.apiCheckUserHasAccessByTokenAndIDCard(userToken, idCard, now) >>
         (
           UserAppealTableInstance.instance += Appeal(idCard.toLowerCase(), reason, now.getMillis)
         )
@@ -32,7 +32,7 @@ object CodeService {
   def jingReport(userToken: String, idCard: IDCard, reason: String, now: DateTime): Try[Int] = Try {
     await(
       (
-        UserService.checkUserHasAccessByTokenAndIDCard(userToken, idCard, now) >>
+        UserService.apiCheckUserHasAccessByTokenAndIDCard(userToken, idCard, now) >>
         (
           JingReportTableInstance.instance += JingReport(idCard.toLowerCase(), reason, now.getMillis)
         )
@@ -98,7 +98,7 @@ object CodeService {
     import models.types.CustomColumnTypes._
     await(
       (
-        UserService.checkUserHasAccessByTokenAndIDCard(userToken, idCard, now) >>
+        UserService.apiCheckUserHasAccessByTokenAndIDCard(userToken, idCard, now) >>
         (
           getColorOfTraces(idCard, now) zip
           getColorOfTraceWithPeoples(idCard, now)

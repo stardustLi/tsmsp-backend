@@ -906,6 +906,7 @@ async function test() {
 				success(await POST({ ...dataSetHzk, color: 0 }), 1);
 				// 为绿码
 				success(await POST(dataGetHzk), 0);
+
 			});
 		}
 	} catch (e) {

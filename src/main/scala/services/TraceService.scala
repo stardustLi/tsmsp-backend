@@ -21,7 +21,7 @@ object TraceService {
   def addTrace(userToken: String, idCard: IDCard, trace: TraceID, now: DateTime): Try[Int] = Try {
     await(
       (
-        UserService.checkUserHasAccessByTokenAndIDCard(userToken, idCard, now) >>
+        UserService.apiCheckUserHasAccessByTokenAndIDCard(userToken, idCard, now) >>
         (
           UserTraceTableInstance.instance += UserTrace(idCard.toLowerCase(), trace, now.getMillis)
         )
@@ -33,7 +33,7 @@ object TraceService {
   def removeTrace(userToken: String, idCard: IDCard, time: Long, now: DateTime): Try[Int] = Try {
     await(
       (
-        UserService.checkUserHasAccessByTokenAndIDCard(userToken, idCard, now) >>
+        UserService.apiCheckUserHasAccessByTokenAndIDCard(userToken, idCard, now) >>
         UserTraceTableInstance
           .filterByIDCard(idCard)
           .filter(trace => trace.time === time)
@@ -46,7 +46,7 @@ object TraceService {
   def updateTrace(userToken: String, idCard: IDCard, time: Long, trace: TraceID, now: DateTime): Try[Int] = Try {
     await(
       (
-        UserService.checkUserHasAccessByTokenAndIDCard(userToken, idCard, now) >>
+        UserService.apiCheckUserHasAccessByTokenAndIDCard(userToken, idCard, now) >>
         UserTraceTableInstance
           .filterByIDCard(idCard)
           .filter(trace => trace.time === time)
@@ -61,7 +61,7 @@ object TraceService {
   def apiGetTraces(userToken: String, idCard: IDCard, startTime: Long, endTime: Long, now: DateTime): Try[List[UserTraceDetailed]] = Try {
     await(
       (
-        UserService.checkUserHasAccessByTokenAndIDCard(userToken, idCard, now) >>
+        UserService.apiCheckUserHasAccessByTokenAndIDCard(userToken, idCard, now) >>
         getTraces(idCard, startTime, endTime)
       ).transactionally
     ).flatMap(userTrace => {
@@ -76,7 +76,7 @@ object TraceService {
   def addTraceWithPeople(userToken: String, idCard: IDCard, cc: UserName, now: DateTime): Try[Int] = Try {
     await(
       (
-        UserService.checkUserHasAccessByTokenAndIDCard(userToken, idCard, now) >>
+        UserService.apiCheckUserHasAccessByTokenAndIDCard(userToken, idCard, now) >>
         UserService.getProfile(cc)
       ).flatMap(
         ccUser =>
@@ -91,7 +91,7 @@ object TraceService {
   def removeTraceWithPeople(userToken: String, idCard: IDCard, time: Long, now: DateTime): Try[Int] = Try {
     await(
       (
-        UserService.checkUserHasAccessByTokenAndIDCard(userToken, idCard, now) >>
+        UserService.apiCheckUserHasAccessByTokenAndIDCard(userToken, idCard, now) >>
         UserTraceWithPeopleTableInstance
           .filterByIDCard(idCard)
           .filter(trace => trace.time === time)
@@ -104,7 +104,7 @@ object TraceService {
   def updateTraceWithPeople(userToken: String, idCard: IDCard, time: Long, cc: UserName, now: DateTime): Try[Int] = Try {
     await(
       (
-        UserService.checkUserHasAccessByTokenAndIDCard(userToken, idCard, now) >>
+        UserService.apiCheckUserHasAccessByTokenAndIDCard(userToken, idCard, now) >>
         UserService.getProfile(cc)
       ).flatMap(
         ccUser =>
@@ -122,7 +122,7 @@ object TraceService {
   def apiGetTracesWithPeople(userToken: String, idCard: IDCard, startTime: Long, endTime: Long, now: DateTime): Try[List[PartialTrace]] = Try {
     await(
       (
-        UserService.checkUserHasAccessByTokenAndIDCard(userToken, idCard, now) >>
+        UserService.apiCheckUserHasAccessByTokenAndIDCard(userToken, idCard, now) >>
         getTracesWithPeople(idCard, startTime, endTime)
       ).transactionally
     ).map(trace => PartialTrace(trace.ThisPeople, trace.CCUserName, trace.time)).toList
