@@ -503,7 +503,7 @@ async function test() {
 				);
 			}, 0);
 		}
-
+exit();
 		{ // 政策测试 (policy)
 			// 政策修改和查询
 			const policies = [

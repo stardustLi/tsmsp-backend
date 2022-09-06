@@ -13,6 +13,8 @@ case class Register(secret: MicroServiceToken, userName: UserName, password: Pas
 
 case class UserRegisterMessage(userName: UserName, password: Password, realName: String, idCard: IDCard) extends TSMSPMessage {
   override def reaction(): Try[TSMSPReply] = Try {
-    Register(MicroServiceTokens.impl.user, userName, password, realName, idCard).send[TSMSPReply](MicroServicePorts.user.APIUrl).get
+    Register(MicroServiceTokens.impl.user, userName, password, realName, idCard)
+      .send[TSMSPReply](MicroServicePorts.user.APIUrl)
+      .get
   }
 }

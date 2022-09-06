@@ -13,6 +13,8 @@ case class Login(secret: MicroServiceToken, userName: UserName, password: Passwo
 
 case class UserLoginMessage(userName: UserName, password: Password) extends TSMSPMessage {
   override def reaction(): Try[TSMSPReply] = Try {
-    Login(MicroServiceTokens.impl.user, userName, password).send[TSMSPReply](MicroServicePorts.user.APIUrl).get
+    Login(MicroServiceTokens.impl.user, userName, password)
+      .send[TSMSPReply](MicroServicePorts.user.APIUrl)
+      .get
   }
 }

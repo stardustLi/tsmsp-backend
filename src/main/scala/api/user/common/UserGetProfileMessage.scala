@@ -13,6 +13,8 @@ case class GetProfile(secret: MicroServiceToken, userToken: String, `type`: Stri
 
 case class UserGetProfileMessage(userToken: String) extends TSMSPMessage {
   override def reaction(): Try[TSMSPReply] = Try {
-    GetProfile(MicroServiceTokens.impl.user, userToken).send[TSMSPReply](MicroServicePorts.user.APIUrl).get
+    GetProfile(MicroServiceTokens.impl.user, userToken)
+      .send[TSMSPReply](MicroServicePorts.user.APIUrl)
+      .get
   }
 }

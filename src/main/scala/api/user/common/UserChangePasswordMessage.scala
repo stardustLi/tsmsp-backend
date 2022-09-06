@@ -13,6 +13,8 @@ case class ChangePassword(secret: MicroServiceToken, userToken: String, newPassw
 
 case class UserChangePasswordMessage(userToken: String, newPassword: Password) extends TSMSPMessage {
   override def reaction(): Try[TSMSPReply] = Try {
-    ChangePassword(MicroServiceTokens.impl.user, userToken, newPassword).send[TSMSPReply](MicroServicePorts.user.APIUrl).get
+    ChangePassword(MicroServiceTokens.impl.user, userToken, newPassword)
+      .send[TSMSPReply](MicroServicePorts.user.APIUrl)
+      .get
   }
 }

@@ -13,6 +13,8 @@ case class FetchAllGrantedUsers(secret: MicroServiceToken, userToken: String, `t
 
 case class UserFetchAllGrantedUsersMessage(userToken: String) extends TSMSPMessage {
   override def reaction(): Try[TSMSPReply] = Try {
-    FetchAllGrantedUsers(MicroServiceTokens.impl.user, userToken).send[TSMSPReply](MicroServicePorts.user.APIUrl).get
+    FetchAllGrantedUsers(MicroServiceTokens.impl.user, userToken)
+      .send[TSMSPReply](MicroServicePorts.user.APIUrl)
+      .get
   }
 }

@@ -1,15 +1,26 @@
 package api.trace.common
 
-import scala.util.Try
+import scala.util.{Success, Try}
+
 import api.{TSMSPMessage, TSMSPReply}
-import models.fields.{IDCard, MicroServiceToken}
+import api.exotic._
+import models.fields._
 import models.types.JacksonSerializable
 import utils.{MicroServicePorts, MicroServiceTokens}
 import utils.MicroServicePorts.Port
 import utils.http.sender
 
+case class GetTrace(secret: MicroServiceToken, idCard: IDCard, startTime: Long, endTime: Long, `type`: String = "GetTrace") extends JacksonSerializable
+
 case class UserGetTraceMessage(userToken: String, idCard: IDCard, startTime: Long, endTime: Long) extends TSMSPMessage {
-//  override def reaction(now: DateTime): Try[TSMSPReply] = Try {
-//    TSMSPReply(HandleStatus.OK, apiGetTraces(userToken, idCard, startTime, endTime, now).get)
-//  }
+  override def reaction(): Try[TSMSPReply] = Try {
+    CheckAccessPermission(MicroServiceTokens.impl.user, userToken, idCard)
+      .send[TSMSPReply](MicroServicePorts.user.APIUrl) match {
+        case Success(response) if response.status == 0 =>
+        case other => return other
+      }
+    GetTrace(MicroServiceTokens.impl.trace, idCard, startTime, endTime)
+      .send[TSMSPReply](MicroServicePorts.trace.APIUrl)
+      .get
+  }
 }
