@@ -2,7 +2,7 @@ import Dependencies._
 
 ThisBuild / scalaVersion := "2.12.8"
 
-lazy val server = (project in file("."))
+lazy val server: Project = (project in file("."))
   .settings(
     name := "TSMSP-Backend",
     Compile/mainClass := Some("process.Server"),
@@ -15,8 +15,8 @@ lazy val server = (project in file("."))
     assemblyJarName in assembly := "tsmsp-backend.jar"
   )
 
-lazy val akkaVersion = "2.6.18"
-lazy val akkaHttpVersion = "10.2.4"
+lazy val akkaVersion: String = "2.6.18"
+lazy val akkaHttpVersion: String = "10.2.4"
 
 libraryDependencies ++= Seq(
   "com.rabbitmq" % "amqp-client" % "5.14.1",
