@@ -20,6 +20,6 @@ case class PolicyUpdateMessage(userToken: String, place: TraceID, content: Strin
         case Success(response) if response.status == 0 =>
         case other => return other
       }
-    Update(MicroServiceTokens.impl.trace, place, content).send(MicroServicePorts.trace.APIUrl).get
+    Update(MicroServiceTokens.impl.trace, place, content).send[TSMSPReply](MicroServicePorts.trace.APIUrl).get
   }
 }

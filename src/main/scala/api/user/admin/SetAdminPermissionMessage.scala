@@ -14,6 +14,6 @@ case class SetAdminPermission(secret: MicroServiceToken, userToken: String, perm
 
 case class SetAdminPermissionMessage(userToken: String, permission: UserAdminPermission) extends TSMSPMessage {
   override def reaction(): Try[TSMSPReply] = Try {
-    SetAdminPermission(MicroServiceTokens.impl.user, userToken, permission).send(MicroServicePorts.user.APIUrl).get
+    SetAdminPermission(MicroServiceTokens.impl.user, userToken, permission).send[TSMSPReply](MicroServicePorts.user.APIUrl).get
   }
 }

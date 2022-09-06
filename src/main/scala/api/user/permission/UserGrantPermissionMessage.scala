@@ -13,6 +13,6 @@ case class GrantPermission(secret: MicroServiceToken, userToken: String, other: 
 
 case class UserGrantPermissionMessage(userToken: String, other: UserName) extends TSMSPMessage {
   override def reaction(): Try[TSMSPReply] = Try {
-    GrantPermission(MicroServiceTokens.impl.user, userToken, other).send(MicroServicePorts.user.APIUrl).get
+    GrantPermission(MicroServiceTokens.impl.user, userToken, other).send[TSMSPReply](MicroServicePorts.user.APIUrl).get
   }
 }

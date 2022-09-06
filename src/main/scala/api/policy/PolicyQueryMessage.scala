@@ -13,6 +13,6 @@ case class Query(secret: MicroServiceToken, place: TraceID, `type`: String = "Qu
 
 case class PolicyQueryMessage(place: TraceID) extends TSMSPMessage {
   override def reaction(): Try[TSMSPReply] = Try {
-    Query(MicroServiceTokens.impl.trace, place).send(MicroServicePorts.trace.APIUrl).get
+    Query(MicroServiceTokens.impl.trace, place).send[TSMSPReply](MicroServicePorts.trace.APIUrl).get
   }
 }

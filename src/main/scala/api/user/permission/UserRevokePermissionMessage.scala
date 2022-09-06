@@ -13,6 +13,6 @@ case class RevokePermission(secret: MicroServiceToken, userToken: String, other:
 
 case class UserRevokePermissionMessage(userToken: String, other: UserName) extends TSMSPMessage {
   override def reaction(): Try[TSMSPReply] = Try {
-    RevokePermission(MicroServiceTokens.impl.user, userToken, other).send(MicroServicePorts.user.APIUrl).get
+    RevokePermission(MicroServiceTokens.impl.user, userToken, other).send[TSMSPReply](MicroServicePorts.user.APIUrl).get
   }
 }

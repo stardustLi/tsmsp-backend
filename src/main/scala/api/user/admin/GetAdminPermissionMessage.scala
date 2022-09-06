@@ -13,6 +13,6 @@ case class GetAdminPermission(secret: MicroServiceToken, userToken: String, `typ
 
 case class GetAdminPermissionMessage(userToken: String) extends TSMSPMessage {
   override def reaction(): Try[TSMSPReply] = Try {
-    GetAdminPermission(MicroServiceTokens.impl.user, userToken).send(MicroServicePorts.user.APIUrl).get
+    GetAdminPermission(MicroServiceTokens.impl.user, userToken).send[TSMSPReply](MicroServicePorts.user.APIUrl).get
   }
 }
