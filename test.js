@@ -124,9 +124,9 @@ async function test() {
 				error(await POST(data), '身份证号 2021010818 不合法！');
 
 				data.idCard = idCard.toUpperCase();
-				let result1 = await POST(data);
-				if (result1.status === 0) result1 = await POST(data);
-				error(result1, '错误！用户名已经存在了');
+				let result = await POST(data);
+				if (result.status === 0) result = await POST(data);
+				error(result, '错误！用户名已经存在了');
 
 				data.userName = 'wide', data.password = 'hzkhzk', data.realName = '卷宽';
 				error(await POST(data), _);
@@ -202,6 +202,26 @@ async function test() {
 			placeStructure.push({ id: 13, name: '市 2', level: 1, parent: placeStructure[12] });
 			placeStructure.push({ id: 14, name: '区 2', level: 2, parent: placeStructure[13] });
 			placeStructure.push({ id: 15, name: '街 2', level: 3, parent: placeStructure[14] });
+			placeStructure.push({ id: 16, name: '北京市', level: 0, parent: placeStructure[0] });
+			placeStructure.push({ id: 17, name: '海淀区', level: 1, parent: placeStructure[16] });
+			placeStructure.push({ id: 18, name: '朝阳区', level: 1, parent: placeStructure[16] });
+			placeStructure.push({ id: 19, name: '东城区', level: 1, parent: placeStructure[16] });
+			placeStructure.push({ id: 20, name: '西城区', level: 1, parent: placeStructure[16] });
+			placeStructure.push({ id: 21, name: '房山区', level: 1, parent: placeStructure[16] });
+			placeStructure.push({ id: 22, name: '丰台区', level: 1, parent: placeStructure[16] });
+			placeStructure.push({ id: 23, name: '石景山区', level: 1, parent: placeStructure[16] });
+			placeStructure.push({ id: 24, name: '怀柔区', level: 1, parent: placeStructure[16] });
+			placeStructure.push({ id: 25, name: '通州区', level: 1, parent: placeStructure[16] });
+			placeStructure.push({ id: 26, name: '清华园街道', level: 2, parent: placeStructure[17] });
+			placeStructure.push({ id: 27, name: '中关村街道', level: 2, parent: placeStructure[17] });
+			placeStructure.push({ id: 28, name: '燕园街道', level: 2, parent: placeStructure[17] });
+			placeStructure.push({ id: 29, name: '西三旗街道', level: 2, parent: placeStructure[17] });
+			placeStructure.push({ id: 30, name: '清河街道', level: 2, parent: placeStructure[17] });
+			placeStructure.push({ id: 31, name: '荷清苑社区', level: 3, parent: placeStructure[26] });
+			placeStructure.push({ id: 32, name: '东楼社区', level: 3, parent: placeStructure[26] });
+			placeStructure.push({ id: 33, name: '南楼社区', level: 3, parent: placeStructure[26] });
+			placeStructure.push({ id: 34, name: '西楼社区', level: 3, parent: placeStructure[26] });
+			placeStructure.push({ id: 35, name: '北楼社区', level: 3, parent: placeStructure[26] });
 
 			// 添加地点
 			await startModule('CreatePlaceMessage', async type => {
@@ -242,6 +262,63 @@ async function test() {
 
 				data.traceDescriptor = ['省 2', '市 2', '区 2', '街 2'];
 				success(await POST(data), placeStructure[15]);
+
+				data.traceDescriptor = ['北京市', '海淀区'];
+				success(await POST(data), placeStructure[17]);
+
+				data.traceDescriptor = ['北京市', '朝阳区'];
+				success(await POST(data), placeStructure[18]);
+
+				data.traceDescriptor = ['北京市', '东城区'];
+				success(await POST(data), placeStructure[19]);
+
+				data.traceDescriptor = ['北京市', '西城区'];
+				success(await POST(data), placeStructure[20]);
+
+				data.traceDescriptor = ['北京市', '房山区'];
+				success(await POST(data), placeStructure[21]);
+
+				data.traceDescriptor = ['北京市', '丰台区'];
+				success(await POST(data), placeStructure[22]);
+
+				data.traceDescriptor = ['北京市', '石景山区'];
+				success(await POST(data), placeStructure[23]);
+
+				data.traceDescriptor = ['北京市', '怀柔区'];
+				success(await POST(data), placeStructure[24]);
+
+				data.traceDescriptor = ['北京市', '通州区'];
+				success(await POST(data), placeStructure[25]);
+
+				data.traceDescriptor = ['北京市', '海淀区', '清华园街道'];
+				success(await POST(data), placeStructure[26]);
+
+				data.traceDescriptor = ['北京市', '海淀区', '中关村街道'];
+				success(await POST(data), placeStructure[27]);
+
+				data.traceDescriptor = ['北京市', '海淀区', '燕园街道'];
+				success(await POST(data), placeStructure[28]);
+
+				data.traceDescriptor = ['北京市', '海淀区', '西三旗街道'];
+				success(await POST(data), placeStructure[29]);
+
+				data.traceDescriptor = ['北京市', '海淀区', '清河街道'];
+				success(await POST(data), placeStructure[30]);
+
+				data.traceDescriptor = ['北京市', '海淀区', '清华园街道', '荷清苑社区'];
+				success(await POST(data), placeStructure[31]);
+
+				data.traceDescriptor = ['北京市', '海淀区', '清华园街道', '东楼社区'];
+				success(await POST(data), placeStructure[32]);
+
+				data.traceDescriptor = ['北京市', '海淀区', '清华园街道', '南楼社区'];
+				success(await POST(data), placeStructure[33]);
+
+				data.traceDescriptor = ['北京市', '海淀区', '清华园街道', '西楼社区'];
+				success(await POST(data), placeStructure[34]);
+
+				data.traceDescriptor = ['北京市', '海淀区', '清华园街道', '北楼社区'];
+				success(await POST(data), placeStructure[35]);
 			});
 
 			// 查询地点
@@ -719,6 +796,7 @@ async function test() {
 
 		{ // 核酸测试 (nucleicAcidTest)
 			const name = stringUtil.randomString(20);
+			const name2 = "紫荆篮球场检测点";
 			console.log(`\x1b[35m增加核酸测试点：\x1b[32m${name}\x1b[0m\n`);
 
 			// 增加核酸测试点
@@ -730,6 +808,12 @@ async function test() {
 				);
 				success(await POST(data));
 				error(await POST(data), _);
+
+				data.place = 31;
+				data.name = name2;
+				const result = await POST(data);
+				if (result.status === 0) result = await POST(data);
+				error(result, _);
 			});
 
 			// 获取核酸测试点
