@@ -1,14 +1,18 @@
 package api.policy
 
-import api.{HandleStatus, TSMSPMessage, TSMSPReply}
-import org.joda.time.DateTime
-
 import scala.util.Try
-import models.fields.TraceID
-import services.PolicyService.policyQuery
+
+import api.{TSMSPMessage, TSMSPReply}
+import models.fields.{MicroServiceToken, TraceID}
+import models.types.JacksonSerializable
+import utils.{MicroServicePorts, MicroServiceTokens}
+import utils.MicroServicePorts.Port
+import utils.http.sender
+
+case class Query(secret: MicroServiceToken, place: TraceID, `type`: String = "Query") extends JacksonSerializable
 
 case class PolicyQueryMessage(place: TraceID) extends TSMSPMessage {
-  override def reaction(now: DateTime): Try[TSMSPReply] = Try {
-    TSMSPReply(HandleStatus.OK, policyQuery(place).get)
+  override def reaction(): Try[TSMSPReply] = Try {
+    Query(MicroServiceTokens.impl.trace, place).send(MicroServicePorts.trace.APIUrl).get
   }
 }

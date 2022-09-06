@@ -1,14 +1,15 @@
 package api.trace.withPeople
 
-import api.{HandleStatus, TSMSPMessage, TSMSPReply}
-import models.fields.IDCard
-import org.joda.time.DateTime
-import services.TraceService.apiGetTracesWithPeopleWithIDCard
-
 import scala.util.Try
+import api.{TSMSPMessage, TSMSPReply}
+import models.fields.{IDCard, MicroServiceToken}
+import models.types.JacksonSerializable
+import utils.{MicroServicePorts, MicroServiceTokens}
+import utils.MicroServicePorts.Port
+import utils.http.sender
 
 case class UserGetTraceWithPeopleWithIDCardMessage(userToken: String, idCard: IDCard, startTime: Long, endTime: Long) extends TSMSPMessage {
-  override def reaction(now: DateTime): Try[TSMSPReply] = Try {
-    TSMSPReply(HandleStatus.OK, apiGetTracesWithPeopleWithIDCard(userToken, idCard, startTime, endTime, now).get)
-  }
+//  override def reaction(now: DateTime): Try[TSMSPReply] = Try {
+//    TSMSPReply(HandleStatus.OK, apiGetTracesWithPeopleWithIDCard(userToken, idCard, startTime, endTime, now).get)
+//  }
 }

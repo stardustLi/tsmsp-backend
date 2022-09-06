@@ -1,7 +1,6 @@
 package api
 
 import com.fasterxml.jackson.annotation.{JsonSubTypes, JsonTypeInfo}
-import org.joda.time.DateTime
 import scala.util.{Failure, Success, Try}
 
 import api.code._
@@ -74,9 +73,9 @@ import models.types.JacksonSerializable
   )
 )
 abstract class TSMSPMessage extends JacksonSerializable {
-  def handle(): TSMSPReply = reaction(DateTime.now()) match {
+  def handle(): TSMSPReply = reaction() match {
     case Success(value) => value
     case Failure(exception) => TSMSPReply(HandleStatus.ERROR, exception.getMessage)
   }
-  def reaction(now: DateTime): Try[TSMSPReply] = Try(TSMSPReply(HandleStatus.OK, "无法识别的消息"))
+  def reaction(): Try[TSMSPReply] = Try(TSMSPReply(HandleStatus.OK, "无法识别的消息"))
 }

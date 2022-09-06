@@ -1,14 +1,16 @@
 package api.code
 
-import api.{HandleStatus, TSMSPMessage, TSMSPReply}
-import org.joda.time.DateTime
-
 import scala.util.Try
-import models.fields.TraceID
-import services.CodeService.dangerousQuery
+
+import api.{TSMSPMessage, TSMSPReply}
+import models.fields.{TraceID, MicroServiceToken}
+import models.types.JacksonSerializable
+import utils.{MicroServicePorts, MicroServiceTokens}
+import utils.MicroServicePorts.Port
+import utils.http.sender
 
 case class DangerousPlaceMessage(place: TraceID) extends TSMSPMessage {
-  override def reaction(now: DateTime): Try[TSMSPReply] = Try {
-    TSMSPReply(HandleStatus.OK, dangerousQuery(place).get)
-  }
+//  override def reaction(now: DateTime): Try[TSMSPReply] = Try {
+//    TSMSPReply(HandleStatus.OK, dangerousQuery(place).get)
+//  }
 }

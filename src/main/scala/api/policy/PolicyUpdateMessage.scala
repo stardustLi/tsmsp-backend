@@ -1,14 +1,25 @@
 package api.policy
 
-import api.{HandleStatus, TSMSPMessage, TSMSPReply}
-import org.joda.time.DateTime
+import scala.util.{Success, Try}
 
-import scala.util.Try
-import models.fields.TraceID
-import services.PolicyService.policyUpdate
+import api.{TSMSPMessage, TSMSPReply}
+import models.enums.AdminPermission
+import models.fields.{MicroServiceToken, TraceID}
+import models.types.JacksonSerializable
+import utils.{MicroServicePorts, MicroServiceTokens}
+import utils.MicroServicePorts.Port
+import utils.http.sender
+
+case class CheckAdminPermission(secret: MicroServiceToken, token: String, field: AdminPermission, `type`: String = "CheckAdminPermission") extends JacksonSerializable
+case class Update(secret: MicroServiceToken, place: TraceID, content: String, `type`: String = "Update") extends JacksonSerializable
 
 case class PolicyUpdateMessage(userToken: String, place: TraceID, content: String) extends TSMSPMessage {
-  override def reaction(now: DateTime): Try[TSMSPReply] = Try {
-    TSMSPReply(HandleStatus.OK, policyUpdate(userToken, place, content, now).get)
+  override def reaction(): Try[TSMSPReply] = Try {
+    CheckAdminPermission(MicroServiceTokens.impl.user, userToken, AdminPermission.SET_POLICY)
+      .send[TSMSPReply](MicroServicePorts.user.APIUrl) match {
+        case Success(response) if response.status == 0 =>
+        case other => return other
+      }
+    Update(MicroServiceTokens.impl.trace, place, content).send(MicroServicePorts.trace.APIUrl).get
   }
 }

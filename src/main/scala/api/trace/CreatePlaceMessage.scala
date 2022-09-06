@@ -1,13 +1,16 @@
 package api.trace
 
-import api.{HandleStatus, TSMSPMessage, TSMSPReply}
-import org.joda.time.DateTime
-
 import scala.util.Try
-import services.TraceService.createPlace
+
+import api.{TSMSPMessage, TSMSPReply}
+import models.fields.MicroServiceToken
+import models.types.JacksonSerializable
+import utils.{MicroServicePorts, MicroServiceTokens}
+import utils.MicroServicePorts.Port
+import utils.http.sender
 
 case class CreatePlaceMessage(userToken: String, traceDescriptor: List[String]) extends TSMSPMessage {
-  override def reaction(now: DateTime): Try[TSMSPReply] = Try {
-    TSMSPReply(HandleStatus.OK, createPlace(userToken, traceDescriptor, now).get)
-  }
+//  override def reaction(now: DateTime): Try[TSMSPReply] = Try {
+//    TSMSPReply(HandleStatus.OK, createPlace(userToken, traceDescriptor, now).get)
+//  }
 }

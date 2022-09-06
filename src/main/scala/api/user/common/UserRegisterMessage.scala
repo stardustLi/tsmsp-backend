@@ -1,14 +1,18 @@
 package api.user.common
 
-import api.{HandleStatus, TSMSPMessage, TSMSPReply}
-import org.joda.time.DateTime
-
 import scala.util.Try
-import models.fields.{IDCard, Password, UserName}
-import services.UserService.register
+
+import api.{TSMSPMessage, TSMSPReply}
+import models.fields.{IDCard, MicroServiceToken, Password, UserName}
+import models.types.JacksonSerializable
+import utils.{MicroServicePorts, MicroServiceTokens}
+import utils.MicroServicePorts.Port
+import utils.http.sender
+
+case class Register(secret: MicroServiceToken, userName: UserName, password: Password, realName: String, idCard: IDCard, `type`: String = "Register") extends JacksonSerializable
 
 case class UserRegisterMessage(userName: UserName, password: Password, realName: String, idCard: IDCard) extends TSMSPMessage {
-  override def reaction(now: DateTime): Try[TSMSPReply] = Try {
-    TSMSPReply(HandleStatus.OK, register(userName, password, realName, idCard, now).get)
+  override def reaction(): Try[TSMSPReply] = Try {
+    Register(MicroServiceTokens.impl.user, userName, password, realName, idCard).send(MicroServicePorts.user.APIUrl).get
   }
 }

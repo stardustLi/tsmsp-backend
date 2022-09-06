@@ -1,14 +1,18 @@
 package api.user.permission
 
-import api.{HandleStatus, TSMSPMessage, TSMSPReply}
-import org.joda.time.DateTime
-
 import scala.util.Try
-import models.fields.UserName
-import services.UserService.revokePermission
+
+import api.{TSMSPMessage, TSMSPReply}
+import models.fields.{MicroServiceToken, UserName}
+import models.types.JacksonSerializable
+import utils.{MicroServicePorts, MicroServiceTokens}
+import utils.MicroServicePorts.Port
+import utils.http.sender
+
+case class RevokePermission(secret: MicroServiceToken, userToken: String, other: UserName, `type`: String = "RevokePermission") extends JacksonSerializable
 
 case class UserRevokePermissionMessage(userToken: String, other: UserName) extends TSMSPMessage {
-  override def reaction(now: DateTime): Try[TSMSPReply] = Try {
-    TSMSPReply(HandleStatus.OK, revokePermission(userToken, other, now).get)
+  override def reaction(): Try[TSMSPReply] = Try {
+    RevokePermission(MicroServiceTokens.impl.user, userToken, other).send(MicroServicePorts.user.APIUrl).get
   }
 }

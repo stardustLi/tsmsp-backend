@@ -1,14 +1,19 @@
 package api.user.admin
 
-import api.{HandleStatus, TSMSPMessage, TSMSPReply}
-import org.joda.time.DateTime
 import scala.util.Try
 
+import api.{TSMSPMessage, TSMSPReply}
 import models.UserAdminPermission
-import services.UserService.apiSetAdminPermission
+import models.fields.MicroServiceToken
+import models.types.JacksonSerializable
+import utils.{MicroServicePorts, MicroServiceTokens}
+import utils.MicroServicePorts.Port
+import utils.http.sender
+
+case class SetAdminPermission(secret: MicroServiceToken, userToken: String, permission: UserAdminPermission, `type`: String = "SetAdminPermission") extends JacksonSerializable
 
 case class SetAdminPermissionMessage(userToken: String, permission: UserAdminPermission) extends TSMSPMessage {
-  override def reaction(now: DateTime): Try[TSMSPReply] = Try {
-    TSMSPReply(HandleStatus.OK, apiSetAdminPermission(userToken, permission, now).get)
+  override def reaction(): Try[TSMSPReply] = Try {
+    SetAdminPermission(MicroServiceTokens.impl.user, userToken, permission).send(MicroServicePorts.user.APIUrl).get
   }
 }
