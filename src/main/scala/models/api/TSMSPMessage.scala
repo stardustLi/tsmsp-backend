@@ -59,6 +59,7 @@ import models.types.JacksonSerializable
     new JsonSubTypes.Type(value = classOf[UserGetColorMessage], name = "UserGetColorMessage"),
     // code.appeal
     new JsonSubTypes.Type(value = classOf[QueryAppealMessage], name = "QueryAppealMessage"),
+    new JsonSubTypes.Type(value = classOf[QueryAppealsMessage], name = "QueryAppealsMessage"),
     new JsonSubTypes.Type(value = classOf[ResolveAppealMessage], name = "ResolveAppealMessage"),
     new JsonSubTypes.Type(value = classOf[UserAppealMessage], name = "UserAppealMessage"),
     // vaccine
