@@ -720,7 +720,7 @@ async function test() {
 			});
 		}
 
-		{ // 进京报备 (code.`JingReportMessage`)
+		{ // 进京报备 (code.jingReport)
 			// 添加进京报备
 			await startModule('JingReportMessage', async type => {
 				const data = { type, userToken, idCard, reason: '猫猫抱起来舒服！' };
@@ -733,6 +733,38 @@ async function test() {
 
 				data.reason = '宽宽抱起来不舒服！';
 				error(await POST(data), _);
+			});
+
+			// 查询报备
+			let appealResult;
+			await startModule('QueryJingReportMessage', async type => {
+				const data = { type, userToken: rootToken, idCard };
+
+				appealResult = success(await POST(data), _);
+				assert.eq(appealResult.idCard, idCard);
+				assert.eq(appealResult.reason, '猫猫抱起来舒服！');
+				time(appealResult.time);
+
+				data.idCard = hzkIdCard;
+				success(await POST(data), null);
+			});
+
+			// 查询所有报备
+			await startModule('QueryJingReportsMessage', async type => {
+				const data = { type, userToken: rootToken };
+
+				const result = success(await POST(data), _).filter(r => r.idCard === idCard);
+				assert.eq(result, [appealResult]);
+			});
+
+			// 解决报备
+			await startModule('ResolveJingReportMessage', async type => {
+				const data = { type, userToken: rootToken, idCard };
+				success(await POST(data));
+
+				success(await POST(data), 0);
+
+				success(await POST({ type: 'QueryJingReportMessage', userToken: rootToken, idCard }), null);
 			});
 		}
 

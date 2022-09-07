@@ -5,6 +5,7 @@ import scala.util.{Failure, Success, Try}
 
 import api.code._
 import api.code.appeal._
+import api.code.jingReport._
 import api.nucleicAcidTest._
 import api.policy._
 import api.trace._
@@ -52,7 +53,6 @@ import models.types.{HandleStatus, JacksonSerializable, TSMSPReply}
     // code
     new JsonSubTypes.Type(value = classOf[AdminSetColorMessage], name = "AdminSetColorMessage"),
     new JsonSubTypes.Type(value = classOf[DangerousPlaceMessage], name = "DangerousPlaceMessage"),
-    new JsonSubTypes.Type(value = classOf[JingReportMessage], name = "JingReportMessage"),
     new JsonSubTypes.Type(value = classOf[SetDangerousPlaceMessage], name = "SetDangerousPlaceMessage"),
     new JsonSubTypes.Type(value = classOf[UserGetColorMessage], name = "UserGetColorMessage"),
     // code.appeal
@@ -60,6 +60,11 @@ import models.types.{HandleStatus, JacksonSerializable, TSMSPReply}
     new JsonSubTypes.Type(value = classOf[QueryAppealsMessage], name = "QueryAppealsMessage"),
     new JsonSubTypes.Type(value = classOf[ResolveAppealMessage], name = "ResolveAppealMessage"),
     new JsonSubTypes.Type(value = classOf[UserAppealMessage], name = "UserAppealMessage"),
+    // code.jingReport
+    new JsonSubTypes.Type(value = classOf[JingReportMessage], name = "JingReportMessage"),
+    new JsonSubTypes.Type(value = classOf[QueryJingReportMessage], name = "QueryJingReportMessage"),
+    new JsonSubTypes.Type(value = classOf[QueryJingReportsMessage], name = "QueryJingReportsMessage"),
+    new JsonSubTypes.Type(value = classOf[ResolveJingReportMessage], name = "ResolveJingReportMessage"),
     // vaccine
     new JsonSubTypes.Type(value = classOf[UserAddVaccineMessage], name = "UserAddVaccineMessage"),
     new JsonSubTypes.Type(value = classOf[UserGetVaccineMessage], name = "UserGetVaccineMessage"),
