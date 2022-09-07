@@ -17,9 +17,9 @@ case class UserGetTraceWithPeopleWithIDCardMessage(userToken: String, idCard: ID
   override def reaction(): Try[TSMSPReply] = Try {
     CheckAdminPermission(MicroServiceTokens.impl.user, userToken, AdminPermission.READ_TRACE_ID)
       .send[TSMSPReply](MicroServicePorts.user.APIUrl) match {
-      case Success(response) if response.status == 0 =>
-      case other => return other
-    }
+        case Success(response) if response.status == 0 =>
+        case other => return other
+      }
     GetTraceWithPeopleWithIDCard(MicroServiceTokens.impl.trace, idCard, startTime, endTime)
       .send[TSMSPReply](MicroServicePorts.trace.APIUrl)
       .get

@@ -94,7 +94,7 @@ async function test() {
 			{ success, error, time } = assert,
 			idCard = '00000000000000001x', hzkIdCard = '00000000000000028x',
 			placeStructure = [];
-		let userToken = '', hzkToken = '', rootToken = '';
+		let userToken = '', hzkToken = '', rootToken = '', NATname = '';
 		/*
 			单元测试账号列表：
 			userName	password	realName	idCard
@@ -503,7 +503,7 @@ async function test() {
 				);
 			}, 0);
 		}
-exit();
+
 		{ // 政策测试 (policy)
 			// 政策修改和查询
 			const policies = [
@@ -672,6 +672,7 @@ exit();
 			});
 
 			// 查询申诉
+			let appealResult;
 			await startModule('QueryAppealMessage', async type => {
 				const data = { type, userToken, idCard };
 				error(await POST(data), ERRORS.NO_PERMISSION);
@@ -682,10 +683,10 @@ exit();
 					permission: { userName: 'cat', viewAppeals: true }
 				}));
 
-				const result1 = success(await POST(data), _);
-				assert.eq(result1.idCard, idCard);
-				assert.eq(result1.reason, '我要抱猫猫！');
-				time(result1.time);
+				appealResult = success(await POST(data), _);
+				assert.eq(appealResult.idCard, idCard);
+				assert.eq(appealResult.reason, '我要抱猫猫！');
+				time(appealResult.time);
 
 				data.idCard = hzkIdCard;
 				success(await POST(data), null);
@@ -698,6 +699,14 @@ exit();
 
 				data.idCard = idCard;
 				error(await POST(data), ERRORS.NO_PERMISSION);
+			});
+
+			// 查询所有申诉
+			await startModule('QueryAppealsMessage', async type => {
+				const data = { type, userToken: rootToken };
+
+				const result = success(await POST(data), _).filter(r => r.idCard === idCard);
+				assert.eq(result, [appealResult]);
 			});
 
 			// 解决申诉
@@ -795,7 +804,7 @@ exit();
 		}
 
 		{ // 核酸测试 (nucleicAcidTest)
-			const name = stringUtil.randomString(20);
+			const name = NATname = stringUtil.randomString(20);
 			const name2 = "紫荆篮球场检测点";
 			console.log(`\x1b[35m增加核酸测试点：\x1b[32m${name}\x1b[0m\n`);
 
@@ -811,7 +820,7 @@ exit();
 
 				data.place = 31;
 				data.name = name2;
-				const result = await POST(data);
+				let result = await POST(data);
 				if (result.status === 0) result = await POST(data);
 				error(result, _);
 			});
@@ -855,7 +864,7 @@ exit();
 
 			// 完成核酸
 			await startModule('FinishNucleicAcidTestMessage', async type => {
-				const data = { type, userToken, idCard, testPlace: name, nucleicResult: true };
+				const data = { type, userToken, idCard, testPlace: name, nucleicResult: false };
 				error(await POST(data), ERRORS.NO_PERMISSION);
 
 				data.userToken = rootToken;
@@ -869,7 +878,7 @@ exit();
 				const result = success(await POST(data), _).filter(r => r.testPlace === name);
 				assert.eq(result.length, 1);
 				assert.eq(result[0].idCard, idCard);
-				assert.eq(result[0].result, true);
+				assert.eq(result[0].result, false);
 				time(result[0].time);
 			});
 		}
@@ -878,6 +887,7 @@ exit();
 			await startModule('UserGetColorMessage', async type => {
 				const
 					makeHzk = { userToken: hzkToken, idCard: hzkIdCard },
+					dataRisk = { type: 'SetDangerousPlaceMessage', userToken: rootToken },
 					dataGet = { type, userToken, idCard },
 					dataGetHzk = { ...dataGet, ...makeHzk },
 					dataSet = { type: 'AdminSetColorMessage', userToken: rootToken, idCard },
@@ -894,7 +904,8 @@ exit();
 					ccGetHzk = { ...ccGet, ...makeHzk },
 					ccDelete = { type: 'UserDeleteTraceWithPeopleMessage', userToken, idCard },
 					ccDeleteHzk = { ...ccDelete, ...makeHzk },
-					dataRisk = { type: 'SetDangerousPlaceMessage', userToken: rootToken };
+					dataAppoint = { type: 'AppointNucleicAcidTestMessage', userToken, idCard, testPlace: NATname },
+					dataFinish = { type: 'FinishNucleicAcidTestMessage', userToken: rootToken, idCard, testPlace: NATname };
 				// 默认绿码
 				success(await POST(dataGet), 0);
 				// 添加轨迹
@@ -915,9 +926,8 @@ exit();
 				success(await POST({ ...dataRisk, place: 3, level: 1 }));
 				// 仍为红码
 				success(await POST(dataGet), 3);
-				// 查询轨迹
+				// 查询并移除轨迹
 				const traces1 = success(await POST(traceGet), _)[0];
-				// 移除轨迹
 				success(await POST({ ...traceDelete, time: traces1.time }));
 				// 仍为红码
 				success(await POST(dataGet), 3);
@@ -972,6 +982,7 @@ exit();
 				success(await POST(dataGetHzk), 2);
 
 				// 重置低风险
+				success(await POST({ ...dataRisk, place: 3, level: 0 }));
 				success(await POST({ ...dataRisk, place: 5, level: 0 }));
 
 				// 移除轨迹
@@ -990,6 +1001,21 @@ exit();
 				success(await POST({ ...dataSetHzk, color: 0 }), 1);
 				// 为绿码
 				success(await POST(dataGetHzk), 0);
+
+				// 核酸预约并测试阳性
+				success(await POST(dataAppoint));
+				success(await POST({ ...dataFinish, nucleicResult: true }));
+				// 为红码
+				success(await POST(dataGet), 3);
+				// 核酸预约并测试阴性
+				success(await POST(dataAppoint));
+				success(await POST({ ...dataFinish, nucleicResult: false }));
+				// 为红码
+				success(await POST(dataGet), 3);
+				// 管理员赋绿码
+				success(await POST({ ...dataSet, color: 0 }), 1);
+				// 为绿码
+				success(await POST(dataGet), 0);
 			});
 		}
 	} catch (e) {

@@ -11,19 +11,19 @@
 > >
 > > > scala 所有scala代码存放的目录
 > > > > Exceptions 定义后端模板在运行过程中可能抛出的错误信息
-> > > 
+> > >
 > > > > Globals 定义后端模板在运行过程中所需要使用的一些全局变量
-> > > 
+> > >
 > > > > Impl 规定好的接口的后端逻辑实现代码
-> > > 
+> > >
 > > > > Process 后端在执行过程中的主要过程
-> > > 
+> > >
 > > > > Tables 数据库的表结构和数据库交互实现
-> > > 
+> > >
 > > > > Utils 一些后端实现中使用的Utilities
-> 
+>
 > build.sbt 定义了项目的包引用依赖。如果需要加入一些其他的scala或者java的包，请在这个文件中加入。
-> 
+>
 
 ### 后端模板逻辑简要说明
 本项目基于Http协议与前端交互，在Process.TSMSPPortalHttpServer中定义了路由。后端在接到对/api路由的请求后，会将请求内容反序列化为一个Impl.Messages.TSMSPMessage的子类，通过子类中定义的reaction方法进行逻辑处理，并得到一个TSMSPReply，最后将TSMSPReply回传给前端。

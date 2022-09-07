@@ -1,8 +1,8 @@
 package api
 
 import com.fasterxml.jackson.annotation.{JsonSubTypes, JsonTypeInfo}
-
 import scala.util.{Failure, Success, Try}
+
 import api.code._
 import api.code.appeal._
 import api.nucleicAcidTest._
@@ -57,6 +57,7 @@ import models.types.{HandleStatus, JacksonSerializable, TSMSPReply}
     new JsonSubTypes.Type(value = classOf[UserGetColorMessage], name = "UserGetColorMessage"),
     // code.appeal
     new JsonSubTypes.Type(value = classOf[QueryAppealMessage], name = "QueryAppealMessage"),
+    new JsonSubTypes.Type(value = classOf[QueryAppealsMessage], name = "QueryAppealsMessage"),
     new JsonSubTypes.Type(value = classOf[ResolveAppealMessage], name = "ResolveAppealMessage"),
     new JsonSubTypes.Type(value = classOf[UserAppealMessage], name = "UserAppealMessage"),
     // vaccine

@@ -1,6 +1,7 @@
 package api.user.common
 
 import scala.util.Try
+
 import api.TSMSPMessage
 import models.fields.{MicroServiceToken, Password, UserName}
 import models.types.{ExoticMessage, TSMSPReply}

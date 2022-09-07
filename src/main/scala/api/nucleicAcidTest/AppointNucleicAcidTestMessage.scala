@@ -16,9 +16,9 @@ case class AppointNucleicAcidTestMessage(userToken: String, idCard: IDCard, test
   override def reaction(): Try[TSMSPReply] = Try {
     CheckAccessPermission(MicroServiceTokens.impl.user, userToken, idCard)
       .send[TSMSPReply](MicroServicePorts.user.APIUrl) match {
-      case Success(response) if response.status == 0 =>
-      case other => return other
-    }
+        case Success(response) if response.status == 0 =>
+        case other => return other
+      }
     AppointNucleicAcidTest(MicroServiceTokens.impl.nucleicAcidTest, idCard, testPlace)
       .send[TSMSPReply](MicroServicePorts.nucleicAcidTest.APIUrl)
       .get

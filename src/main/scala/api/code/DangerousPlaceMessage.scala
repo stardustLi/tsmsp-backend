@@ -3,14 +3,18 @@ package api.code
 import scala.util.Try
 
 import api.TSMSPMessage
-import models.fields.{TraceID, MicroServiceToken}
-import models.types.{JacksonSerializable, TSMSPReply}
+import models.fields.{MicroServiceToken, TraceID}
+import models.types.{ExoticMessage, TSMSPReply}
 import utils.{MicroServicePorts, MicroServiceTokens}
 import utils.MicroServicePorts.Port
 import utils.http.sender
 
+case class DangerousQuery(secret: MicroServiceToken, place: TraceID) extends ExoticMessage
+
 case class DangerousPlaceMessage(place: TraceID) extends TSMSPMessage {
-//  override def reaction(now: DateTime): Try[TSMSPReply] = Try {
-//    TSMSPReply(HandleStatus.OK, dangerousQuery(place).get)
-//  }
+  override def reaction(): Try[TSMSPReply] = Try {
+    DangerousQuery(MicroServiceTokens.impl.code, place)
+      .send[TSMSPReply](MicroServicePorts.code.APIUrl)
+      .get
+  }
 }

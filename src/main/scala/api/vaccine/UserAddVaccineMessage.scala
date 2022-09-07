@@ -16,9 +16,9 @@ case class UserAddVaccineMessage(userToken: String, idCard: IDCard, manufacture:
   override def reaction(): Try[TSMSPReply] = Try {
     CheckAccessPermission(MicroServiceTokens.impl.user, userToken, idCard)
       .send[TSMSPReply](MicroServicePorts.user.APIUrl) match {
-      case Success(response) if response.status == 0 =>
-      case other => return other
-    }
+        case Success(response) if response.status == 0 =>
+        case other => return other
+      }
     AddVaccine(MicroServiceTokens.impl.vaccine, idCard, manufacture, time)
       .send[TSMSPReply](MicroServicePorts.vaccine.APIUrl)
       .get
