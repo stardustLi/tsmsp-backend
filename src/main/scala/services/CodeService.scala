@@ -40,6 +40,16 @@ object CodeService {
     )
   }
 
+  /** 获取所有报备 */
+  def queryJingReports(userToken: String, now: DateTime): Try[List[JingReport]] = Try {
+    await(
+      (
+        UserService.checkAdminPermission(userToken, _.viewAppeals, now) >>
+          JingReportTableInstance.instance.result
+        ).transactionally
+    ).toList
+  }
+
   /** 获取一个人的申诉 */
   def queryAppeal(userToken: String, idCard: IDCard, now: DateTime): Try[Option[Appeal]] = Try {
     await(
