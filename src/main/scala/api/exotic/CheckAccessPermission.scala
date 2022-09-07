@@ -1,11 +1,10 @@
 package api.exotic
 
 import models.fields.{IDCard, MicroServiceToken}
-import models.types.JacksonSerializable
+import models.types.ExoticMessage
 
 case class CheckAccessPermission(
   secret: MicroServiceToken,
   token: String,
-  idCard: IDCard,
-  `type`: String = "CheckAccessPermission"
-) extends JacksonSerializable
+  idCard: IDCard
+) extends ExoticMessage

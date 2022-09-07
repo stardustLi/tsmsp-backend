@@ -3,14 +3,14 @@ package api.vaccine
 import scala.util.{Success, Try}
 
 import api.exotic.CheckAccessPermission
-import api.{TSMSPMessage, TSMSPReply}
+import api.TSMSPMessage
 import models.fields.{IDCard, MicroServiceToken}
-import models.types.JacksonSerializable
+import models.types.{ExoticMessage, TSMSPReply}
 import utils.{MicroServicePorts, MicroServiceTokens}
 import utils.MicroServicePorts.Port
 import utils.http.sender
 
-case class GetVaccine(secret: MicroServiceToken, idCard: IDCard, `type`: String = "GetVaccine") extends JacksonSerializable
+case class GetVaccine(secret: MicroServiceToken, idCard: IDCard) extends ExoticMessage
 
 case class UserGetVaccineMessage(userToken: String, idCard: IDCard) extends TSMSPMessage {
   override def reaction(): Try[TSMSPReply] = Try {

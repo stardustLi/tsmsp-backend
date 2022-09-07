@@ -2,9 +2,9 @@ package api.code.appeal
 
 import scala.util.Try
 
-import api.{TSMSPMessage, TSMSPReply}
+import api.TSMSPMessage
 import models.fields.{IDCard, MicroServiceToken}
-import models.types.JacksonSerializable
+import models.types.{JacksonSerializable, TSMSPReply}
 import utils.{MicroServicePorts, MicroServiceTokens}
 import utils.MicroServicePorts.Port
 import utils.http.sender

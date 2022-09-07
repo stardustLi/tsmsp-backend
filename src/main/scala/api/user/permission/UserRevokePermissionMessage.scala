@@ -2,14 +2,14 @@ package api.user.permission
 
 import scala.util.Try
 
-import api.{TSMSPMessage, TSMSPReply}
+import api.TSMSPMessage
 import models.fields.{MicroServiceToken, UserName}
-import models.types.JacksonSerializable
+import models.types.{ExoticMessage, TSMSPReply}
 import utils.{MicroServicePorts, MicroServiceTokens}
 import utils.MicroServicePorts.Port
 import utils.http.sender
 
-case class RevokePermission(secret: MicroServiceToken, userToken: String, other: UserName, `type`: String = "RevokePermission") extends JacksonSerializable
+case class RevokePermission(secret: MicroServiceToken, userToken: String, other: UserName) extends ExoticMessage
 
 case class UserRevokePermissionMessage(userToken: String, other: UserName) extends TSMSPMessage {
   override def reaction(): Try[TSMSPReply] = Try {

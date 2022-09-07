@@ -2,16 +2,16 @@ package api.trace
 
 import scala.util.{Success, Try}
 
-import api.{TSMSPMessage, TSMSPReply}
+import api.TSMSPMessage
 import api.exotic._
 import models.enums._
 import models.fields._
-import models.types.JacksonSerializable
+import models.types.{ExoticMessage, TSMSPReply}
 import utils.{MicroServicePorts, MicroServiceTokens}
 import utils.MicroServicePorts.Port
 import utils.http.sender
 
-case class CreatePlace(secret: MicroServiceToken, traceDescriptor: List[String], `type`: String = "CreatePlace") extends JacksonSerializable
+case class CreatePlace(secret: MicroServiceToken, traceDescriptor: List[String]) extends ExoticMessage
 
 case class CreatePlaceMessage(userToken: String, traceDescriptor: List[String]) extends TSMSPMessage {
   override def reaction(): Try[TSMSPReply] = Try {

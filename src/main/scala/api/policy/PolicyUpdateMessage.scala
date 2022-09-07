@@ -3,15 +3,15 @@ package api.policy
 import scala.util.{Success, Try}
 
 import api.exotic.CheckAdminPermission
-import api.{TSMSPMessage, TSMSPReply}
+import api.TSMSPMessage
 import models.enums.AdminPermission
 import models.fields.{MicroServiceToken, TraceID}
-import models.types.JacksonSerializable
+import models.types.{ExoticMessage, TSMSPReply}
 import utils.{MicroServicePorts, MicroServiceTokens}
 import utils.MicroServicePorts.Port
 import utils.http.sender
 
-case class Update(secret: MicroServiceToken, place: TraceID, content: String, `type`: String = "Update") extends JacksonSerializable
+case class Update(secret: MicroServiceToken, place: TraceID, content: String) extends ExoticMessage
 
 case class PolicyUpdateMessage(userToken: String, place: TraceID, content: String) extends TSMSPMessage {
   override def reaction(): Try[TSMSPReply] = Try {

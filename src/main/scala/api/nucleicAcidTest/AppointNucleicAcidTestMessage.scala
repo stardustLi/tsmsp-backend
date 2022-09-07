@@ -1,15 +1,26 @@
 package api.nucleicAcidTest
 
-import scala.util.Try
-import api.{TSMSPMessage, TSMSPReply}
+import scala.util.{Success, Try}
+
+import api.TSMSPMessage
+import api.exotic.CheckAccessPermission
 import models.fields.{IDCard, MicroServiceToken, NucleicAcidTestPointName}
-import models.types.JacksonSerializable
+import models.types.{ExoticMessage, TSMSPReply}
 import utils.{MicroServicePorts, MicroServiceTokens}
 import utils.MicroServicePorts.Port
 import utils.http.sender
 
+case class AppointNucleicAcidTest(secret: MicroServiceToken, idCard: IDCard, testPlace: NucleicAcidTestPointName) extends ExoticMessage
+
 case class AppointNucleicAcidTestMessage(userToken: String, idCard: IDCard, testPlace: NucleicAcidTestPointName) extends TSMSPMessage {
-//  override def reaction(now: DateTime): Try[TSMSPReply] = Try {
-//    TSMSPReply(HandleStatus.OK, appointNucleicAcidTest(userToken, idCard, testPlace, now).get)
-//  }
+  override def reaction(): Try[TSMSPReply] = Try {
+    CheckAccessPermission(MicroServiceTokens.impl.user, userToken, idCard)
+      .send[TSMSPReply](MicroServicePorts.user.APIUrl) match {
+      case Success(response) if response.status == 0 =>
+      case other => return other
+    }
+    AppointNucleicAcidTest(MicroServiceTokens.impl.nucleicAcidTest, idCard, testPlace)
+      .send[TSMSPReply](MicroServicePorts.nucleicAcidTest.APIUrl)
+      .get
+  }
 }

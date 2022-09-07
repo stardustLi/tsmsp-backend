@@ -2,16 +2,16 @@ package api.trace.withPeople
 
 import scala.util.{Success, Try}
 
-import api.{TSMSPMessage, TSMSPReply}
+import api.TSMSPMessage
 import api.exotic._
 import models.enums._
 import models.fields._
-import models.types.JacksonSerializable
+import models.types.{ExoticMessage, TSMSPReply}
 import utils.{MicroServicePorts, MicroServiceTokens}
 import utils.MicroServicePorts.Port
 import utils.http.sender
 
-case class GetTraceWithPeopleWithIDCard(secret: MicroServiceToken, idCard: IDCard, startTime: Long, endTime: Long, `type`: String = "GetTraceWithPeopleWithIDCard") extends JacksonSerializable
+case class GetTraceWithPeopleWithIDCard(secret: MicroServiceToken, idCard: IDCard, startTime: Long, endTime: Long) extends ExoticMessage
 
 case class UserGetTraceWithPeopleWithIDCardMessage(userToken: String, idCard: IDCard, startTime: Long, endTime: Long) extends TSMSPMessage {
   override def reaction(): Try[TSMSPReply] = Try {

@@ -1,8 +1,8 @@
 package api
 
 import com.fasterxml.jackson.annotation.{JsonSubTypes, JsonTypeInfo}
-import scala.util.{Failure, Success, Try}
 
+import scala.util.{Failure, Success, Try}
 import api.code._
 import api.code.appeal._
 import api.nucleicAcidTest._
@@ -14,7 +14,7 @@ import api.user.admin._
 import api.user.common._
 import api.user.permission._
 import api.vaccine._
-import models.types.JacksonSerializable
+import models.types.{HandleStatus, JacksonSerializable, TSMSPReply}
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes(

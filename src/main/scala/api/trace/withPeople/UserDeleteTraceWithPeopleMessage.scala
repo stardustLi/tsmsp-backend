@@ -2,15 +2,15 @@ package api.trace.withPeople
 
 import scala.util.{Success, Try}
 
-import api.{TSMSPMessage, TSMSPReply}
+import api.TSMSPMessage
 import api.exotic._
 import models.fields._
-import models.types.JacksonSerializable
+import models.types.{ExoticMessage, TSMSPReply}
 import utils.{MicroServicePorts, MicroServiceTokens}
 import utils.MicroServicePorts.Port
 import utils.http.sender
 
-case class DeleteTraceWithPeople(secret: MicroServiceToken, idCard: IDCard, time: Long, `type`: String = "DeleteTraceWithPeople") extends JacksonSerializable
+case class DeleteTraceWithPeople(secret: MicroServiceToken, idCard: IDCard, time: Long) extends ExoticMessage
 
 case class UserDeleteTraceWithPeopleMessage(userToken: String, idCard: IDCard, time: Long) extends TSMSPMessage {
   override def reaction(): Try[TSMSPReply] = Try {

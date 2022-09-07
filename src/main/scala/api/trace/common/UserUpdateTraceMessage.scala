@@ -2,15 +2,15 @@ package api.trace.common
 
 import scala.util.{Success, Try}
 
-import api.{TSMSPMessage, TSMSPReply}
+import api.TSMSPMessage
 import api.exotic._
 import models.fields._
-import models.types.JacksonSerializable
+import models.types.{ExoticMessage, TSMSPReply}
 import utils.{MicroServicePorts, MicroServiceTokens}
 import utils.MicroServicePorts.Port
 import utils.http.sender
 
-case class UpdateTrace(secret: MicroServiceToken, idCard: IDCard, time: Long, trace: TraceID, `type`: String = "UpdateTrace") extends JacksonSerializable
+case class UpdateTrace(secret: MicroServiceToken, idCard: IDCard, time: Long, trace: TraceID) extends ExoticMessage
 
 case class UserUpdateTraceMessage(userToken: String, idCard: IDCard, time: Long, trace: TraceID) extends TSMSPMessage {
   override def reaction(): Try[TSMSPReply] = Try {
